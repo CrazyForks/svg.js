@@ -8,23 +8,16 @@ export function registerWindow(win = null, doc = null) {
   globals.document = doc
 }
 
-const save = {}
-
-export function saveWindow() {
-  save.window = globals.window
-  save.document = globals.document
-}
-
-export function restoreWindow() {
-  globals.window = save.window
-  globals.document = save.document
-}
-
 export function withWindow(win, fn) {
-  saveWindow()
+  const oldWindow = globals.window
+  const oldDocument = globals.document
+
   registerWindow(win, win.document)
-  fn(win, win.document)
-  restoreWindow()
+  try {
+    return fn(win, win.document)
+  } finally {
+    registerWindow(oldWindow, oldDocument)
+  }
 }
 
 export function getWindow() {

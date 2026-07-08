@@ -10,6 +10,7 @@ The document follows the conventions described in [“Keep a CHANGELOG”](http:
 
 ### Fixed
 
+- restore the previous window context when a `withWindow()` callback throws
 - remove every matching listener when the same callback is registered multiple times
 
 ## [3.2.5]

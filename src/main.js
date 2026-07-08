@@ -70,8 +70,6 @@ export * from './utils/adopter.js'
 export {
   getWindow,
   registerWindow,
-  restoreWindow,
-  saveWindow,
   withWindow
 } from './utils/window.js'
 

@@ -4,21 +4,24 @@ import {
   registerWindow,
   globals,
   withWindow,
-  getWindow,
-  saveWindow,
-  restoreWindow
+  getWindow
 } from '../../../src/utils/window.js'
 
 describe('window.js', () => {
   describe('registerWindow()', () => {
     it('sets a new window as global', () => {
-      saveWindow()
+      const oldWindow = globals.window
+      const oldDocument = globals.document
       const win = {}
       const doc = {}
-      registerWindow(win, doc)
-      expect(globals.window).toBe(win)
-      expect(globals.document).toBe(doc)
-      restoreWindow() // we need this or jasmine will fail in afterAll
+
+      try {
+        registerWindow(win, doc)
+        expect(globals.window).toBe(win)
+        expect(globals.document).toBe(doc)
+      } finally {
+        registerWindow(oldWindow, oldDocument)
+      }
     })
   })
 
@@ -32,6 +35,24 @@ describe('window.js', () => {
         expect(globals.document).toEqual(win.document)
       })
       expect(globals.window).toBe(oldWindow)
+    })
+
+    it('restores the previous window context when the callback throws', () => {
+      const oldWindow = globals.window
+      const oldDocument = globals.document
+
+      try {
+        expect(() => {
+          withWindow({ foo: 'bar', document: {} }, () => {
+            throw new Error('boom')
+          })
+        }).toThrowError('boom')
+
+        expect(globals.window).toBe(oldWindow)
+        expect(globals.document).toBe(oldDocument)
+      } finally {
+        registerWindow(oldWindow, oldDocument)
+      }
     })
   })
 
