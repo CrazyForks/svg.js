@@ -3,7 +3,10 @@ import { makeInstance } from '../../utils/adopter.js'
 
 export default function parser() {
   // Reuse cached element if possible
-  if (!parser.nodes) {
+  if (
+    !parser.nodes ||
+    parser.nodes.svg.node.ownerDocument !== globals.document
+  ) {
     const svg = makeInstance().size(2, 0)
     svg.node.style.cssText = [
       'opacity: 0',
