@@ -30,6 +30,8 @@ interface CSSStyleDeclarationWithVars extends KebabCSSStyleDeclaration {
 
 declare module '@svgdotjs/svg.js' {
   function SVG(): Svg
+  function SVG(el: undefined): Svg
+  function SVG(el: null): null
   /**
    * @param selectorOrHtml pass in a css selector or an html/svg string
    * @param isHTML only used if first argument is an html string. Will treat the svg/html as html and not svg
@@ -38,71 +40,61 @@ declare module '@svgdotjs/svg.js' {
   function SVG<T>(el: T): SVGTypeMapping<T>
   function SVG(domElement: HTMLElement): Element
 
+  type SVGClass<T = any> = new (...args: any[]) => T
+
   function eid(name: string): string
-  function get(id: string): Element
+  function create(name: string): SVGElement
+  function create(
+    name: string,
+    namespace: 'http://www.w3.org/2000/svg'
+  ): SVGElement
+  function create(
+    name: string,
+    namespace: 'http://www.w3.org/1999/xhtml'
+  ): HTMLElement
+  function create(name: string, namespace: string): globalThis.Element
+  function adopt(node: null | undefined): null
+  function adopt<T extends Node>(node: T): SVGTypeMapping<T>
+  function getClass(name: string): SVGClass | undefined
+  function extend(parent: SVGClass | SVGClass[], obj: object): void
 
-  function create(name: string): any
-  function extend(parent: object, obj: object): void
-  function invent(config: object): any
-  function adopt(node: HTMLElement): Element
-  function prepare(element: HTMLElement): void
-  function getClass(name: string): Element
-
+  type EventNames = string | string[]
+  type EventOptions = boolean | AddEventListenerOptions
   function on(
-    el: Node | Window,
-    events: string,
+    el: Node | Window | EventTarget,
+    events: EventNames,
     cb: EventListener,
-    binbind?: any,
-    options?: AddEventListenerOptions
-  ): void
-  function on(
-    el: Node | Window,
-    events: Event[],
-    cb: EventListener,
-    binbind?: any,
-    options?: AddEventListenerOptions
+    binding?: any,
+    options?: EventOptions
   ): void
 
   function off(
-    el: Node | Window,
-    events?: string,
+    el: Node | Window | EventTarget,
+    events?: EventNames,
     cb?: EventListener | number,
-    options?: AddEventListenerOptions
-  ): void
-  function off(
-    el: Node | Window,
-    events?: Event[],
-    cb?: EventListener | number,
-    options?: AddEventListenerOptions
+    options?: EventOptions
   ): void
 
   function dispatch(
-    node: Node | Window,
-    event: Event,
-    data?: object,
-    options?: object
+    node: EventTarget,
+    event: Event | string,
+    data?: any,
+    options?: CustomEventInit
   ): Event
 
   function find(query: QuerySelector): List<Element>
-  function findOne(query: QuerySelector): Element | null
 
-  function getWindow(): Window
-  function registerWindow(win: Window, doc: Document): void
-  function withWindow(
-    win: Window,
-    fn: (win: Window, doc: Document) => void
-  ): void
+  function getWindow(): Window | null
+  function registerWindow(win?: Window | null, doc?: Document | null): void
+  function withWindow<T>(win: Window, fn: (win: Window, doc: Document) => T): T
 
   let utils: {
-    map(array: any[], block: Function): any
-    filter(array: any[], block: Function): any
+    map<T, U>(array: T[], block: (value: T) => U): U[]
+    filter<T>(array: T[], block: (value: T) => boolean): T[]
     radians(d: number): number
     degrees(r: number): number
-    camelCase(s: string): string
     unCamelCase(s: string): string
     capitalize(s: string): string
-    // proportionalSize
-    // getOrigin
   }
 
   let defaults: {
@@ -127,8 +119,6 @@ declare module '@svgdotjs/svg.js' {
       offset: number
       'stop-opacity': number
       'stop-color': string
-      'font-size': number
-      'font-family': string
       'text-anchor': string
     }
     timeline: {
@@ -136,22 +126,12 @@ declare module '@svgdotjs/svg.js' {
       ease: string
       delay: number
     }
+    noop(): void
   }
-
-  // let easing: {
-  //     '-'(pos: number): number;
-  //     '<>'(pos: number): number;
-  //     '>'(pos: number): number;
-  //     '<'(pos: number): number;
-  //     bezier(x1: number, y1: number, x2: number, y2: number): (t: number) => number;
-  //     steps(steps: number, stepPosition?: "jump-start"|"jump-end"|"jump-none"|"jump-both"|"start"|"end"): (t: number, beforeFlag?: boolean) => number;
-  // }
 
   let regex: {
     delimiter: RegExp
-    dots: RegExp
     hex: RegExp
-    hyphen: RegExp
     isBlank: RegExp
     isHex: RegExp
     isImage: RegExp
@@ -159,8 +139,6 @@ declare module '@svgdotjs/svg.js' {
     isPathLetter: RegExp
     isRgb: RegExp
     numberAndUnit: RegExp
-    numbersWithDots: RegExp
-    pathLetters: RegExp
     reference: RegExp
     rgb: RegExp
     transforms: RegExp
@@ -168,10 +146,10 @@ declare module '@svgdotjs/svg.js' {
   }
 
   let namespaces: {
-    ns: string
-    xmlns: string
-    xlink: string
-    svgjs: string
+    html: 'http://www.w3.org/1999/xhtml'
+    svg: 'http://www.w3.org/2000/svg'
+    xmlns: 'http://www.w3.org/2000/xmlns/'
+    xlink: 'http://www.w3.org/1999/xlink'
   }
 
   interface LinkedHTMLElement extends HTMLElement {
@@ -328,47 +306,49 @@ declare module '@svgdotjs/svg.js' {
 
   // ************ SVG.JS generic Conditional Types declaration ************
 
-  type SVGTypeMapping<T> = T extends HTMLElement
-    ? Dom
-    : T extends SVGSVGElement
-      ? Svg
-      : T extends SVGRectElement
-        ? Rect
-        : T extends SVGCircleElement
-          ? Circle
-          : T extends SVGPathElement
-            ? Path
-            : T extends SVGTextElement
-              ? Text
-              : T extends SVGTextPathElement
-                ? TextPath
-                : T extends SVGGElement
-                  ? G
-                  : T extends SVGLineElement
-                    ? Line
-                    : T extends SVGPolylineElement
-                      ? Polyline
-                      : T extends SVGPolygonElement
-                        ? Polygon
-                        : T extends SVGGradientElement
-                          ? Gradient
-                          : T extends SVGImageElement
-                            ? Image
-                            : T extends SVGEllipseElement
-                              ? Ellipse
-                              : T extends SVGMaskElement
-                                ? Mask
-                                : T extends SVGMarkerElement
-                                  ? Marker
-                                  : T extends SVGClipPathElement
-                                    ? ClipPath
-                                    : T extends SVGTSpanElement
-                                      ? Tspan
-                                      : T extends SVGSymbolElement
-                                        ? Symbol
-                                        : T extends SVGUseElement
-                                          ? Use
-                                          : Element
+  type SVGTypeMapping<T> = T extends DocumentFragment
+    ? Fragment
+    : T extends HTMLElement
+      ? Dom
+      : T extends SVGSVGElement
+        ? Svg
+        : T extends SVGRectElement
+          ? Rect
+          : T extends SVGCircleElement
+            ? Circle
+            : T extends SVGPathElement
+              ? Path
+              : T extends SVGTextElement
+                ? Text
+                : T extends SVGTextPathElement
+                  ? TextPath
+                  : T extends SVGGElement
+                    ? G
+                    : T extends SVGLineElement
+                      ? Line
+                      : T extends SVGPolylineElement
+                        ? Polyline
+                        : T extends SVGPolygonElement
+                          ? Polygon
+                          : T extends SVGGradientElement
+                            ? Gradient
+                            : T extends SVGImageElement
+                              ? Image
+                              : T extends SVGEllipseElement
+                                ? Ellipse
+                                : T extends SVGMaskElement
+                                  ? Mask
+                                  : T extends SVGMarkerElement
+                                    ? Marker
+                                    : T extends SVGClipPathElement
+                                      ? ClipPath
+                                      : T extends SVGTSpanElement
+                                        ? Tspan
+                                        : T extends SVGSymbolElement
+                                          ? Symbol
+                                          : T extends SVGUseElement
+                                            ? Use
+                                            : Element
 
   // element type as string
   type SvgType = 'svg'
@@ -688,34 +668,40 @@ declare module '@svgdotjs/svg.js' {
     toArray(): T[]
   }
 
-  class Eventobject {
-    [key: string]: Eventobject
-  }
-
   // EventTarget.js
   class EventTarget {
-    events: Eventobject
-
-    addEventListener(): void
-    dispatch(event: Event | string, data?: object): Event
+    addEventListener(
+      type: string,
+      listener: EventListener,
+      options?: EventOptions
+    ): void
+    dispatch(
+      event: Event | string,
+      data?: any,
+      options?: CustomEventInit
+    ): Event
     dispatchEvent(event: Event): boolean
-    fire(event: Event | string, data?: object): this
+    fire(event: Event | string, data?: any, options?: CustomEventInit): this
     getEventHolder(): this | Node
     getEventTarget(): this | Node
 
     on(
-      events: string | Event[],
+      events: EventNames,
       cb: EventListener,
-      binbind?: any,
-      options?: AddEventListenerOptions
+      binding?: any,
+      options?: EventOptions
     ): this
     off(
-      events?: string | Event[],
+      events?: EventNames,
       cb?: EventListener | number,
-      options?: AddEventListenerOptions
+      options?: EventOptions
     ): this
 
-    removeEventListener(): void
+    removeEventListener(
+      type: string,
+      listener: EventListener,
+      options?: EventOptions
+    ): void
   }
 
   // Color.js
@@ -830,7 +816,7 @@ declare module '@svgdotjs/svg.js' {
   type MorphValueLike =
     | string
     | number
-    | objectBag
+    | ObjectBag
     | NonMorphable
     | MatrixExtract
     | Array<any>
@@ -852,30 +838,30 @@ declare module '@svgdotjs/svg.js' {
     at(pos: number): any
   }
 
-  class objectBag {
+  class ObjectBag {
     constructor()
-    constructor(a: object)
-    valueOf(): object
-    toArray(): object[]
+    constructor(a: object | any[])
+    valueOf(): Record<string, any>
+    toArray(): any[]
 
-    to(a: object): Morphable
+    to(a: any): Morphable
     fromArray(a: any[]): this
   }
 
   class NonMorphable {
-    constructor(a: object)
-    valueOf(): object
-    toArray(): object[]
+    constructor(a?: any)
+    valueOf(): any
+    toArray(): any[]
 
-    to(a: object): Morphable
-    fromArray(a: object): this
+    to(a: any): Morphable
+    fromArray(a: any[]): this
   }
 
   class TransformBag {
     constructor()
     constructor(a: number[])
     constructor(a: TransformData)
-    defaults: TransformData
+    static defaults: Required<TransformData>
     toArray(): number[]
     to(t: TransformData): Morphable
     fromArray(t: number[]): this
@@ -898,6 +884,51 @@ declare module '@svgdotjs/svg.js' {
     constructor(fn?: Function)
     step(current: number, target: number, dt: number, c: number): number
     done(c?: object): boolean
+  }
+
+  class Spring extends Controller {
+    constructor(duration?: number, overshoot?: number)
+    duration(): number
+    duration(value: number): this
+    overshoot(): number
+    overshoot(value: number): this
+  }
+
+  class PID extends Controller {
+    constructor(p?: number, i?: number, d?: number, windup?: number | false)
+    p(): number
+    p(value: number): this
+    i(): number
+    i(value: number): this
+    d(): number
+    d(value: number): this
+    windup(): number | false
+    windup(value: number | false): this
+  }
+
+  type StepPosition =
+    | 'jump-start'
+    | 'jump-end'
+    | 'jump-none'
+    | 'jump-both'
+    | 'start'
+    | 'end'
+
+  let easing: {
+    '-': (pos: number) => number
+    '<>': (pos: number) => number
+    '>': (pos: number) => number
+    '<': (pos: number) => number
+    bezier(
+      x1: number,
+      y1: number,
+      x2: number,
+      y2: number
+    ): (t: number) => number
+    steps(
+      steps: number,
+      stepPosition?: StepPosition
+    ): (t: number, beforeFlag?: boolean) => number
   }
 
   // Queue.js
@@ -935,11 +966,13 @@ declare module '@svgdotjs/svg.js' {
     unschedule(runner: Runner): this
     getEndTime(): number
     updateTime(): this
-    persist(dtOrForever?: number | boolean): this
+    persist(): number | boolean
+    persist(dtOrForever: number | boolean): this
     play(): this
     pause(): this
     stop(): this
     finish(): this
+    speed(): number
     speed(speed: number): this
     reverse(yes: boolean): this
     seek(dt: number): this
@@ -964,11 +997,8 @@ declare module '@svgdotjs/svg.js' {
   type EasingCallback = (...any: any) => number
   type EasingLiteral = '<>' | '-' | '<' | '>'
 
-  class Runner {
-    constructor()
-    constructor(options: Function)
-    constructor(options: number)
-    constructor(options: Controller)
+  class Runner extends EventTarget {
+    constructor(options?: Function | TimeLike)
 
     static sanitise: (
       duration?: TimeLike,
@@ -1001,7 +1031,8 @@ declare module '@svgdotjs/svg.js' {
     duration(): number
     loops(): number
     loops(p: number): this
-    persist(dtOrForever?: number | boolean): this
+    persist(): number | boolean | null
+    persist(dtOrForever: number | boolean): this
     position(): number
     position(p: number): this
     progress(): number
@@ -1234,9 +1265,13 @@ declare module '@svgdotjs/svg.js' {
     memory(): object
 
     addEventListener(): void
-    dispatch(event: Event | string, data?: object): Event
+    dispatch(
+      event: Event | string,
+      data?: any,
+      options?: CustomEventInit
+    ): Event
     dispatchEvent(event: Event): boolean
-    fire(event: Event | string, data?: object): this
+    fire(event: Event | string, data?: any, options?: CustomEventInit): this
     getEventHolder(): this | Node
     getEventTarget(): this | Node
 
@@ -1264,7 +1299,7 @@ declare module '@svgdotjs/svg.js' {
     height: number
   }
 
-  class Containable {
+  interface Containable {
     circle(size?: NumberAlias): Circle
     clip(): ClipPath
     ellipse(width?: number, height?: number): Ellipse
@@ -1308,27 +1343,17 @@ declare module '@svgdotjs/svg.js' {
     zoom(level: NumberAlias, point?: Point): this
   }
 
-  type DynamicExtends<T extends {}> = {
-    new (...args: any[]): Containable & T
-  }
-
-  /**
-   * only for declaration purpose. actually cannot be used.
-   */
-  let ContainableDom: DynamicExtends<Dom>
-  class Fragment extends ContainableDom {
+  class Fragment extends Dom {
     constructor(node?: Node)
   }
+  interface Fragment extends Containable {}
 
-  /**
-   * only for declaration purpose. actually cannot be used.
-   */
-  let ContainableElement: DynamicExtends<Element>
-  class Container extends ContainableElement {
+  class Container extends Element {
     constructor()
     flatten(parent: Dom, depth?: number): this
     ungroup(parent: Dom, depth?: number): this
   }
+  interface Container extends Containable {}
 
   class Defs extends Container {
     constructor(node?: SVGDefsElement)
@@ -1454,8 +1479,8 @@ declare module '@svgdotjs/svg.js' {
     dy(y: NumberAlias): this
     event(): Event | CustomEvent
 
-    fire(event: Event): this
-    fire(event: string, data?: any): this
+    fire(event: Event, data?: any, options?: CustomEventInit): this
+    fire(event: string, data?: any, options?: CustomEventInit): this
     forget(...keys: string[]): this
     forget(): this
     forward(): this
@@ -1606,9 +1631,9 @@ declare module '@svgdotjs/svg.js' {
   // ellipse.js
   interface CircleMethods extends Shape {
     rx(rx: number): this
-    rx(): this
+    rx(): NumberAlias
     ry(ry: number): this
-    ry(): this
+    ry(): NumberAlias
     radius(x: number, y?: number): this
   }
   class Circle extends Shape implements CircleMethods {
@@ -1618,9 +1643,9 @@ declare module '@svgdotjs/svg.js' {
     node: SVGCircleElement
 
     rx(rx: number): this
-    rx(): this
+    rx(): NumberAlias
     ry(ry: number): this
-    ry(): this
+    ry(): NumberAlias
     radius(x: number, y?: number): this
   }
   class Ellipse extends Shape implements CircleMethods {
@@ -1629,9 +1654,9 @@ declare module '@svgdotjs/svg.js' {
     constructor(node?: SVGEllipseElement)
 
     rx(rx: number): this
-    rx(): this
+    rx(): NumberAlias
     ry(ry: number): this
-    ry(): this
+    ry(): NumberAlias
     radius(x: number, y?: number): this
   }
 
@@ -1865,6 +1890,10 @@ declare module '@svgdotjs/svg.js' {
     constructor(node?: SVGRectElement)
     constructor(attr: RectAttr)
     node: SVGRectElement
+    rx(): NumberAlias
+    rx(rx: NumberAlias): this
+    ry(): NumberAlias
+    ry(ry: NumberAlias): this
     radius(x: number, y?: number): this
   }
 
