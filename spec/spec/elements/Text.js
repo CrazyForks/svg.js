@@ -105,6 +105,25 @@ describe('Text.js', () => {
     })
   })
 
+  describe('metadata round trips', () => {
+    it('preserves multiline text when cloned', () => {
+      const text = new Text().text('one\ntwo')
+
+      expect(text.clone().text()).toBe('one\ntwo')
+    })
+
+    it('preserves multiline text and blank lines when exported and imported', () => {
+      const svg = new Svg().namespace()
+      const text = svg.text('one\n\ntwo')
+
+      const imported = SVG(svg.svg()).findOne('text')
+
+      expect(imported.text()).toBe('one\n\ntwo')
+      expect(text.attr('data-svgjs')).toBeUndefined()
+      expect(text.get(0).attr('data-svgjs')).toBe('{"newLined":true}')
+    })
+  })
+
   describe('rebuild()', () => {
     it('disables the rebuild if called with false', () => {
       const text = new Text()

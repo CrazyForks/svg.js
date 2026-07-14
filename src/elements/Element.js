@@ -158,8 +158,8 @@ export default class Element extends Dom {
   }
 
   // write svgjs data to the dom
-  writeDataToDom() {
-    writeDataToDom(this, this.dom)
+  writeDataToDom(defaults) {
+    writeDataToDom(this, this.dom, defaults)
     return super.writeDataToDom()
   }
 

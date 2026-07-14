@@ -10,7 +10,7 @@ import SVGNumber from '../types/SVGNumber.js'
 import Shape from './Shape.js'
 import { globals } from '../utils/window.js'
 import * as textable from '../modules/core/textable.js'
-import { isDescriptive, writeDataToDom } from '../utils/utils.js'
+import { isDescriptive } from '../utils/utils.js'
 
 export default class Text extends Shape {
   // Initialize node
@@ -83,8 +83,7 @@ export default class Text extends Shape {
   }
 
   writeDataToDom() {
-    writeDataToDom(this, this.dom, { leading: 1.3 })
-    return this
+    return super.writeDataToDom({ leading: 1.3 })
   }
 
   // Set the text content

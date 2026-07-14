@@ -10,6 +10,7 @@ The document follows the conventions described in [“Keep a CHANGELOG”](http:
 
 ### Fixed
 
+- preserve multiline text metadata when writing SVG.js data to the DOM
 - align TypeScript declarations with the package's runtime exports and behavior
 - point published browser, ESM, and CommonJS entry points at the built distributions
 - isolate cached parser elements when switching between documents
