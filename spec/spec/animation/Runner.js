@@ -1829,6 +1829,45 @@ describe('Runner.js', () => {
           expect(spy1).toHaveBeenCalledWith(20)
           expect(spy2).toHaveBeenCalledWith(20)
         })
+
+        const runnerTypes = {
+          timed: () => new Runner(100).ease('-'),
+          declarative: () =>
+            new Runner((current, target, dt, context) => {
+              context.done = true
+              return target
+            })
+        }
+        const sizeCases = [
+          ['zero width', 0, 100, 0, 100],
+          ['zero height', 100, 0, 100, 0],
+          ['zero width and height', 0, 0, 0, 0],
+          ['omitted width', undefined, 100, 50, 100],
+          ['omitted height', 100, undefined, 100, 200]
+        ]
+
+        for (const [runnerType, createRunner] of Object.entries(runnerTypes)) {
+          for (const [
+            name,
+            width,
+            height,
+            expectedWidth,
+            expectedHeight
+          ] of sizeCases) {
+            it(`${name} with a ${runnerType} runner`, () => {
+              const element = new Rect().size(10, 20)
+              const expected = new Rect().size(10, 20).size(width, height)
+              const runner = createRunner().element(element)
+
+              runner.size(width, height).finish()
+
+              expect(element.width()).toBe(expectedWidth)
+              expect(element.height()).toBe(expectedHeight)
+              expect(element.width()).toBe(expected.width())
+              expect(element.height()).toBe(expected.height())
+            })
+          }
+        }
       })
 
       describe('width()', () => {

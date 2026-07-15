@@ -1,7 +1,7 @@
 import { Controller, Ease, Stepper } from './Controller.js'
 import { extend, register } from '../utils/adopter.js'
 import { from, to } from '../modules/core/gradiented.js'
-import { getOrigin } from '../utils/utils.js'
+import { getOrigin, proportionalSize } from '../utils/utils.js'
 import { noop, timeline } from '../modules/core/defaults.js'
 import { registerMethods } from '../utils/methods.js'
 import { rx, ry } from '../modules/core/circled.js'
@@ -999,22 +999,9 @@ extend(Runner, {
 
   // Add animatable size
   size(width, height) {
-    // animate bbox based size for all other elements
-    let box
+    const size = proportionalSize(this._element, width, height)
 
-    if (!width || !height) {
-      box = this._element.bbox()
-    }
-
-    if (!width) {
-      width = (box.width / box.height) * height
-    }
-
-    if (!height) {
-      height = (box.height / box.width) * width
-    }
-
-    return this.width(width).height(height)
+    return this.width(size.width).height(size.height)
   },
 
   // Add animatable width
