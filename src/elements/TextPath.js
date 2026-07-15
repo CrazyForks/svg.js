@@ -4,7 +4,7 @@ import { xlink } from '../modules/core/namespaces.js'
 import Path from './Path.js'
 import PathArray from '../types/PathArray.js'
 import Text from './Text.js'
-import baseFind from '../modules/core/selector.js'
+import { findReferences } from '../modules/core/references.js'
 
 export default class TextPath extends Text {
   // Initialize node
@@ -92,12 +92,7 @@ registerMethods({
     }),
 
     targets() {
-      return baseFind('svg textPath').filter((node) => {
-        return (node.attr('href') || '').includes(this.id())
-      })
-
-      // Does not work in IE11. Use when IE support is dropped
-      // return baseFind('svg textPath[*|href*=' + this.id() + ']')
+      return findReferences(this.node, 'href', 'textPath')
     }
   }
 })

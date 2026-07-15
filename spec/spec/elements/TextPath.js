@@ -147,6 +147,19 @@ describe('TextPath.js', () => {
         const textPath = text.path(path)
         expect(path.targets()).toEqual([textPath])
       })
+
+      it('matches hrefs exactly and ignores external references', () => {
+        path.id('path.with:special[chars]')
+        const textPath = text.path(path)
+        const otherPath = canvas.path().id('path.with:special[chars]-other')
+        canvas.text('other').path(otherPath)
+        canvas
+          .text('external')
+          .path(path)
+          .attr('href', 'file.svg#path.with:special[chars]')
+
+        expect(path.targets()).toEqual([textPath])
+      })
     })
   })
 })

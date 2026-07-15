@@ -39,6 +39,14 @@ describe('Mask.js', () => {
       const rect = canvas.rect(100, 100).maskWith(mask)
       expect(mask.targets()).toEqual([rect])
     })
+
+    it('matches CSS-special IDs exactly', () => {
+      const canvas = SVG().addTo(container)
+      const mask = canvas.mask().id('mask.with:special[chars]')
+      const rect = canvas.rect(100, 100).maskWith(mask)
+
+      expect(mask.targets()).toEqual([rect])
+    })
   })
 
   describe('Container', () => {

@@ -10,7 +10,7 @@ import {
 import { globals } from '../utils/window.js'
 import { point } from '../types/Point.js'
 import { proportionalSize, writeDataToDom } from '../utils/utils.js'
-import { reference } from '../modules/core/regex.js'
+import { resolveReference } from '../modules/core/references.js'
 import Dom from './Dom.js'
 import List from '../types/List.js'
 import SVGNumber from '../types/SVGNumber.js'
@@ -129,8 +129,8 @@ export default class Element extends Dom {
     attr = this.attr(attr)
     if (!attr) return null
 
-    const m = (attr + '').match(reference)
-    return m ? makeInstance(m[1]) : null
+    const target = resolveReference(this.node, attr)
+    return target ? makeInstance(target) : null
   }
 
   // Get parent document

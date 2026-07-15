@@ -83,14 +83,15 @@ describe('regex.js', () => {
   })
 
   describe('reference', () => {
-    it('matches a reference', () => {
-      const match = '#soMe_cRazy-1_id'.match(regex.reference)
-      expect(match[1]).toBe('#soMe_cRazy-1_id')
+    it('matches a complete local reference', () => {
+      expect('#123'.match(regex.reference)[1]).toBe('#123')
+      expect('#shape.with:special[chars]'.match(regex.reference)[1]).toBe(
+        '#shape.with:special[chars]'
+      )
     })
 
-    it('tries to match malformed references', () => {
-      const match = '#some_crazy%-1_id'.match(regex.reference)
-      expect(match[0]).toBe('#some_crazy')
+    it('does not extract a local reference from an external URL', () => {
+      expect('icons.svg#shape'.match(regex.reference)).toBe(null)
     })
   })
 

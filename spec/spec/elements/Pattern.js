@@ -41,6 +41,14 @@ describe('Pattern.js', () => {
       const rect = canvas.rect(100, 100).fill(pattern)
       expect(pattern.targets()).toEqual([rect])
     })
+
+    it('matches CSS-special IDs exactly', () => {
+      const canvas = SVG().addTo(container)
+      const pattern = canvas.pattern().id('pattern.with:special[chars]')
+      const rect = canvas.rect(100, 100).fill(pattern)
+
+      expect(pattern.targets()).toEqual([rect])
+    })
   })
 
   describe('toString()', () => {

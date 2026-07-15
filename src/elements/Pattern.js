@@ -2,7 +2,7 @@ import { nodeOrNew, register, wrapWithAttrCheck } from '../utils/adopter.js'
 import { registerMethods } from '../utils/methods.js'
 import Box from '../types/Box.js'
 import Container from './Container.js'
-import baseFind from '../modules/core/selector.js'
+import { findReferences } from '../modules/core/references.js'
 
 export default class Pattern extends Container {
   // Initialize node
@@ -21,7 +21,7 @@ export default class Pattern extends Container {
   }
 
   targets() {
-    return baseFind('svg [fill*=' + this.id() + ']')
+    return findReferences(this.node, 'fill')
   }
 
   // Alias string conversion to fill

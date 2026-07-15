@@ -9,7 +9,7 @@ export const hex = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i
 export const rgb = /rgb\((\d+),(\d+),(\d+)\)/
 
 // Parse reference id
-export const reference = /(#[a-z_][a-z0-9\-_]*)/i
+export const reference = /^(#[^\s]+)$/
 
 // splits a transformation chain
 export const transforms = /\)\s*,?\s*/

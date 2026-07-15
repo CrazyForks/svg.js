@@ -39,6 +39,36 @@ describe('ClipPath.js', () => {
       const rect = canvas.rect(100, 100).clipWith(clip)
       expect(clip.targets()).toEqual([rect])
     })
+
+    it('matches special IDs exactly and ignores external references', () => {
+      const canvas = SVG().addTo(container)
+      const clip = canvas.clip().id('clip.with:special[chars]')
+      const rect = canvas.rect(100, 100).clipWith(clip)
+      canvas
+        .rect(100, 100)
+        .attr('clip-path', 'url(file.svg#clip.with:special[chars])')
+
+      expect(clip.targets()).toEqual([rect])
+    })
+
+    it('only finds targets in its own document', () => {
+      const canvas = SVG().addTo(container)
+      const clip = canvas.clip().id('shared-clip')
+      canvas.rect(100, 100).clipWith(clip)
+
+      const otherDocument =
+        container.ownerDocument.implementation.createHTMLDocument('clip scope')
+      const otherSvgNode = otherDocument.createElementNS(
+        'http://www.w3.org/2000/svg',
+        'svg'
+      )
+      otherDocument.body.appendChild(otherSvgNode)
+      const otherCanvas = SVG(otherSvgNode)
+      const otherClip = otherCanvas.clip().id('shared-clip')
+      const otherRect = otherCanvas.rect(100, 100).clipWith(otherClip)
+
+      expect(otherClip.targets()).toEqual([otherRect])
+    })
   })
 
   describe('Container', () => {

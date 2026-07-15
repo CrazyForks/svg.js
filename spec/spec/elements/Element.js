@@ -240,6 +240,56 @@ describe('Element.js', function () {
       expect(path.reference('marker-end')).toBe(mark)
       expect(rect.reference('width')).toBe(null)
     })
+
+    it('resolves complete numeric and CSS-special IDs', () => {
+      const canvas = SVG().addTo(container)
+      const numeric = canvas.rect().id('123')
+      const special = canvas.rect().id('shape.with:special[chars]')
+      const use = canvas.use(numeric)
+      const path = canvas.path().attr('fill', 'url(#shape.with:special[chars])')
+
+      expect(use.reference('href')).toBe(numeric)
+      expect(path.reference('fill')).toBe(special)
+    })
+
+    it('resolves references in the referencing element own document', () => {
+      const localCanvas = SVG().addTo(container)
+      localCanvas.rect().id('shared-reference')
+
+      const otherDocument =
+        container.ownerDocument.implementation.createHTMLDocument(
+          'reference scope'
+        )
+      const otherSvgNode = otherDocument.createElementNS(
+        'http://www.w3.org/2000/svg',
+        'svg'
+      )
+      otherDocument.body.appendChild(otherSvgNode)
+      const otherCanvas = SVG(otherSvgNode)
+      const otherRect = otherCanvas.rect().id('shared-reference')
+      const otherUse = otherCanvas.use(otherRect)
+
+      expect(otherUse.reference('href')).toBe(otherRect)
+    })
+
+    it('resolves references inside a detached svg', () => {
+      const canvas = SVG()
+      const rect = canvas.rect().id('detached-reference')
+
+      expect(canvas.use(rect).reference('href')).toBe(rect)
+    })
+
+    it('does not resolve external URLs against the local document', () => {
+      const canvas = SVG().addTo(container)
+      canvas.rect().id('external-reference')
+      const use = canvas.use('external-reference', 'icons.svg')
+      const path = canvas
+        .path()
+        .attr('data-reference', 'url(icons.svg#external-reference)')
+
+      expect(use.reference('href')).toBe(null)
+      expect(path.reference('data-reference')).toBe(null)
+    })
   })
 
   describe('setData()', () => {

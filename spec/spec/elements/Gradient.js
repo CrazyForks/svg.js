@@ -48,6 +48,16 @@ describe('Gradient.js', () => {
       const rect = canvas.rect(100, 100).fill(gradient)
       expect(gradient.targets()).toEqual([rect])
     })
+
+    it('matches CSS-special IDs exactly', () => {
+      const canvas = SVG().addTo(container)
+      const gradient = canvas
+        .gradient('linear')
+        .id('gradient.with:special[chars]')
+      const rect = canvas.rect(100, 100).fill(gradient)
+
+      expect(gradient.targets()).toEqual([rect])
+    })
   })
 
   describe('toString()', () => {

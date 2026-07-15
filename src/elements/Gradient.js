@@ -7,7 +7,7 @@ import {
 import { registerMethods } from '../utils/methods.js'
 import Box from '../types/Box.js'
 import Container from './Container.js'
-import baseFind from '../modules/core/selector.js'
+import { findReferences } from '../modules/core/references.js'
 import * as gradiented from '../modules/core/gradiented.js'
 
 export default class Gradient extends Container {
@@ -29,7 +29,7 @@ export default class Gradient extends Container {
   }
 
   targets() {
-    return baseFind('svg [fill*=' + this.id() + ']')
+    return findReferences(this.node, 'fill')
   }
 
   // Alias string conversion to fill

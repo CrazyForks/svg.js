@@ -1,7 +1,7 @@
 import { nodeOrNew, register, wrapWithAttrCheck } from '../utils/adopter.js'
 import { registerMethods } from '../utils/methods.js'
 import Container from './Container.js'
-import baseFind from '../modules/core/selector.js'
+import { findReferences } from '../modules/core/references.js'
 
 export default class Mask extends Container {
   // Initialize node
@@ -21,7 +21,7 @@ export default class Mask extends Container {
   }
 
   targets() {
-    return baseFind('svg [mask*=' + this.id() + ']')
+    return findReferences(this.node, 'mask')
   }
 }
 

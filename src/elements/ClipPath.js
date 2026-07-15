@@ -1,7 +1,7 @@
 import { nodeOrNew, register, wrapWithAttrCheck } from '../utils/adopter.js'
 import { registerMethods } from '../utils/methods.js'
 import Container from './Container.js'
-import baseFind from '../modules/core/selector.js'
+import { findReferences } from '../modules/core/references.js'
 
 export default class ClipPath extends Container {
   constructor(node, attrs = node) {
@@ -20,7 +20,7 @@ export default class ClipPath extends Container {
   }
 
   targets() {
-    return baseFind('svg [clip-path*=' + this.id() + ']')
+    return findReferences(this.node, 'clip-path')
   }
 }
 
