@@ -63,39 +63,46 @@ const Animator = {
   },
 
   _draw(now) {
-    // Run all the timeouts we can run, if they are not ready yet, add them
-    // to the end of the queue immediately! (bad timeouts!!! [sarcasm])
-    let nextTimeout = null
-    const lastTimeout = Animator.timeouts.last()
-    while ((nextTimeout = Animator.timeouts.shift())) {
-      // Run the timeout if its time, or push it to the end
-      if (now >= nextTimeout.time) {
-        nextTimeout.run()
-      } else {
-        Animator.timeouts.push(nextTimeout)
+    try {
+      // Run all the timeouts we can run, if they are not ready yet, add them
+      // to the end of the queue immediately! (bad timeouts!!! [sarcasm])
+      let nextTimeout = null
+      const lastTimeout = Animator.timeouts.last()
+      while ((nextTimeout = Animator.timeouts.shift())) {
+        // Run the timeout if its time, or push it to the end
+        if (now >= nextTimeout.time) {
+          nextTimeout.run()
+        } else {
+          Animator.timeouts.push(nextTimeout)
+        }
+
+        // If we hit the last item, we should stop shifting out more items
+        if (nextTimeout === lastTimeout) break
       }
 
-      // If we hit the last item, we should stop shifting out more items
-      if (nextTimeout === lastTimeout) break
-    }
+      // Run all of the animation frames
+      let nextFrame = null
+      const lastFrame = Animator.frames.last()
+      while (nextFrame !== lastFrame && (nextFrame = Animator.frames.shift())) {
+        nextFrame.run(now)
+      }
 
-    // Run all of the animation frames
-    let nextFrame = null
-    const lastFrame = Animator.frames.last()
-    while (nextFrame !== lastFrame && (nextFrame = Animator.frames.shift())) {
-      nextFrame.run(now)
-    }
+      let nextImmediate = null
+      while ((nextImmediate = Animator.immediates.shift())) {
+        nextImmediate()
+      }
+    } finally {
+      // Callback errors intentionally propagate. Always restore the scheduler
+      // first so queued work can continue on a later frame.
+      const pending =
+        Animator.timeouts.first() ||
+        Animator.frames.first() ||
+        Animator.immediates.first()
 
-    let nextImmediate = null
-    while ((nextImmediate = Animator.immediates.shift())) {
-      nextImmediate()
-    }
-
-    // If we have remaining timeouts or frames, draw until we don't anymore
-    Animator.nextDraw =
-      Animator.timeouts.first() || Animator.frames.first()
+      Animator.nextDraw = pending
         ? globals.window.requestAnimationFrame(Animator._draw)
         : null
+    }
   }
 }
 

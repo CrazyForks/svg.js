@@ -88,4 +88,42 @@ describe('Animator.js', () => {
       expect(spy).not.toHaveBeenCalled()
     })
   })
+
+  describe('callback errors', () => {
+    const callbackTypes = {
+      timeout: (callback) => Animator.timeout(callback),
+      frame: (callback) => Animator.frame(callback),
+      immediate: (callback) => Animator.immediate(callback)
+    }
+
+    for (const [type, schedule] of Object.entries(callbackTypes)) {
+      it(`continues scheduled work after a ${type} callback throws`, () => {
+        const laterCallback = jasmine.createSpy('later callback')
+
+        schedule(() => {
+          schedule(laterCallback)
+          throw new Error(`${type} failed`)
+        })
+
+        expect(() => jasmine.RequestAnimationFrame.tick()).toThrowError(
+          `${type} failed`
+        )
+        expect(laterCallback).not.toHaveBeenCalled()
+
+        jasmine.RequestAnimationFrame.tick()
+        expect(laterCallback).toHaveBeenCalled()
+      })
+    }
+
+    it('keeps timeout, frame, and immediate callback ordering', () => {
+      const order = []
+
+      Animator.timeout(() => order.push('timeout'))
+      Animator.frame(() => order.push('frame'))
+      Animator.immediate(() => order.push('immediate'))
+
+      jasmine.RequestAnimationFrame.tick()
+      expect(order).toEqual(['timeout', 'frame', 'immediate'])
+    })
+  })
 })
