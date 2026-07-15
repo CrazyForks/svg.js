@@ -65,7 +65,7 @@ export { defaults, utils, namespaces, regex }
 export const SVG = makeInstance
 export { default as parser } from './modules/core/parser.js'
 export { default as find } from './modules/core/selector.js'
-export * from './modules/core/event.js'
+export { dispatch, off, on } from './modules/core/event.js'
 export * from './utils/adopter.js'
 export {
   getWindow,
