@@ -29,6 +29,7 @@ export function clearEvents(instance) {
 // Add event binder in the SVG namespace
 export function on(node, events, listener, binding, options) {
   const l = listener.bind(binding || node)
+  const listenerOptions = options || false
   const instance = makeInstance(node)
   const bag = getEvents(instance)
   const n = getEventTarget(instance)
@@ -52,10 +53,10 @@ export function on(node, events, listener, binding, options) {
 
     // reference listener
     bag[ev][ns][id] = bag[ev][ns][id] || []
-    bag[ev][ns][id].push(l)
+    bag[ev][ns][id].push({ listener: l, options: listenerOptions })
 
     // add listener
-    n.addEventListener(ev, l, options || false)
+    n.addEventListener(ev, l, listenerOptions)
   })
 }
 
@@ -87,8 +88,12 @@ export function off(node, events, listener, options) {
         if (!listeners) return
 
         // removeListener
-        listeners.forEach(function (l) {
-          n.removeEventListener(ev, l, options || false)
+        listeners.forEach(function (registration) {
+          n.removeEventListener(
+            ev,
+            registration.listener,
+            registration.options ?? options ?? false
+          )
         })
 
         delete bag[ev][ns || '*'][listener]

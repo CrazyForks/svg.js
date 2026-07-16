@@ -19,8 +19,8 @@ export default class EventTarget extends Base {
       for (const j in events[i]) {
         const listeners = events[i][j]
 
-        listeners.forEach(function (listener) {
-          listener(event)
+        listeners.forEach(function (registration) {
+          registration.listener(event)
         })
       }
     }

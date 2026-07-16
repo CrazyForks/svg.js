@@ -245,6 +245,32 @@ describe('event.js', () => {
 
       expect(spy).toHaveBeenCalledTimes(2)
     })
+
+    it('unbinds duplicate DOM registrations with their original options', () => {
+      const rect = SVG().rect(10, 10)
+      const spy = createSpy('spy')
+      const capture = { capture: true }
+      const bubble = { capture: false }
+      const removeEventListener = spyOn(
+        rect.node,
+        'removeEventListener'
+      ).and.callThrough()
+
+      rect.on('event', spy, null, capture)
+      rect.on('event', spy, null, bubble)
+      rect.off('event', spy, capture)
+
+      expect(removeEventListener.calls.argsFor(0)).toEqual([
+        'event',
+        any(Function),
+        capture
+      ])
+      expect(removeEventListener.calls.argsFor(1)).toEqual([
+        'event',
+        any(Function),
+        bubble
+      ])
+    })
   })
 
   describe('dispatch()', () => {
