@@ -86,8 +86,7 @@
     "test:package": "node ./spec/package/commonjs-entry.cjs",
     "zip": "zip -j dist/svg.js.zip -- LICENSE.txt README.md CHANGELOG.md dist/svg.js dist/svg.js.map dist/svg.min.js dist/svg.min.js.map dist/polyfills.js dist/polyfillsIE.js",
     "prepublishOnly": "rm -rf ./dist && pnpm build && pnpm build:polyfills && pnpm test:package && pnpm test:svgdom && pnpm test",
-    "postpublish": "pnpm zip",
-    "checkTests": "node spec/checkForAllTests.js"
+    "postpublish": "pnpm zip"
   },
   "devDependencies": {
     "@babel/core": "^7.24.7",
