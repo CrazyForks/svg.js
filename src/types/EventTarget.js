@@ -1,4 +1,4 @@
-import { dispatch, off, on } from '../modules/core/event.js'
+import { dispatch, getEvents, off, on } from '../modules/core/event.js'
 import { register } from '../utils/adopter.js'
 import Base from './Base.js'
 
@@ -10,8 +10,7 @@ export default class EventTarget extends Base {
   }
 
   dispatchEvent(event) {
-    const bag = this.getEventHolder().events
-    if (!bag) return true
+    const bag = getEvents(this)
 
     const events = bag[event.type]
     if (!events) return true

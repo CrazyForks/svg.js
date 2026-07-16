@@ -1,6 +1,5 @@
 /* globals describe, expect, it, spyOn, jasmine */
 import {
-  windowEvents,
   getEvents,
   getEventTarget,
   clearEvents,
@@ -15,17 +14,25 @@ const { any, createSpy } = jasmine
 
 describe('event.js', () => {
   describe('getEvents()', () => {
-    it('returns the instance events for an EventTarget', () => {
+    it('returns private events for an EventTarget', () => {
       const eventTarget = new EventTarget()
       eventTarget.events = 'Test'
       const events = getEvents(eventTarget)
-      expect(events).toBe('Test')
+      expect(events).toEqual({})
+      expect(getEvents(eventTarget)).toBe(events)
+      expect(eventTarget.events).toBe('Test')
     })
 
-    it('accesses windowEvents if instance is window', () => {
-      windowEvents.events = 'bla'
-      const events = getEvents(SVG(getWindow()))
-      expect(events).toBe(windowEvents.events)
+    it('stores window events without modifying the window', () => {
+      const window = getWindow()
+      const hadEvents = Object.prototype.hasOwnProperty.call(window, 'events')
+      const applicationEvents = window.events
+      const events = getEvents(SVG(window))
+      expect(getEvents(SVG(window))).toBe(events)
+      expect(window.events).toBe(applicationEvents)
+      expect(Object.prototype.hasOwnProperty.call(window, 'events')).toBe(
+        hadEvents
+      )
     })
   })
 
@@ -39,22 +46,50 @@ describe('event.js', () => {
   })
 
   describe('clearEvents()', () => {
-    it('sets events to an empty object', () => {
+    it('clears the private events', () => {
       const eventTarget = new EventTarget()
-      eventTarget.events = 'Test'
+      const events = getEvents(eventTarget)
+      events.event = {}
       clearEvents(eventTarget)
-      expect(eventTarget.events).toEqual({})
+      expect(getEvents(eventTarget)).toEqual({})
+      expect(getEvents(eventTarget)).not.toBe(events)
     })
 
-    it('does not do anything if no event object is found on the instance', () => {
+    it('does not add an events property to the instance', () => {
       const eventTarget = new EventTarget()
-      delete eventTarget.events
       clearEvents(eventTarget)
       expect(eventTarget.events).toBe(undefined)
     })
   })
 
   describe('on()', () => {
+    it('does not use an application-owned events property', () => {
+      const eventTarget = new EventTarget()
+      const spy = createSpy('spy')
+      Object.defineProperty(eventTarget, 'events', {
+        value: 'application data'
+      })
+
+      on(eventTarget, 'event', spy)
+      dispatch(eventTarget, 'event')
+
+      expect(spy).toHaveBeenCalled()
+      expect(eventTarget.events).toBe('application data')
+    })
+
+    it('accepts frozen listeners without adding metadata to them', () => {
+      const eventTarget = new EventTarget()
+      const spy = Object.freeze(createSpy('spy'))
+
+      on(eventTarget, 'event', spy)
+      dispatch(eventTarget, 'event')
+      off(eventTarget, 'event', spy)
+      dispatch(eventTarget, 'event')
+
+      expect(spy).toHaveBeenCalledTimes(1)
+      expect(spy._svgjsListenerId).toBeUndefined()
+    })
+
     it('binds an event to an EventTarget', () => {
       const eventTarget = new EventTarget()
       const spy = createSpy('spy')

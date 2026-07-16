@@ -3,15 +3,19 @@ import { makeInstance } from '../../utils/adopter.js'
 import { globals } from '../../utils/window.js'
 
 let listenerId = 0
-export const windowEvents = {}
+const eventStore = new WeakMap()
+const listenerIds = new WeakMap()
 
 export function getEvents(instance) {
-  let n = instance.getEventHolder()
+  const holder = instance.getEventHolder()
+  let bag = eventStore.get(holder)
 
-  // We dont want to save events in global space
-  if (n === globals.window) n = windowEvents
-  if (!n.events) n.events = {}
-  return n.events
+  if (!bag) {
+    bag = {}
+    eventStore.set(holder, bag)
+  }
+
+  return bag
 }
 
 export function getEventTarget(instance) {
@@ -19,9 +23,7 @@ export function getEventTarget(instance) {
 }
 
 export function clearEvents(instance) {
-  let n = instance.getEventHolder()
-  if (n === globals.window) n = windowEvents
-  if (n.events) n.events = {}
+  eventStore.delete(instance.getEventHolder())
 }
 
 // Add event binder in the SVG namespace
@@ -34,9 +36,10 @@ export function on(node, events, listener, binding, options) {
   // events can be an array of events or a string of events
   events = Array.isArray(events) ? events : events.split(delimiter)
 
-  // add id to listener
-  if (!listener._svgjsListenerId) {
-    listener._svgjsListenerId = ++listenerId
+  let id = listenerIds.get(listener)
+  if (!id) {
+    id = ++listenerId
+    listenerIds.set(listener, id)
   }
 
   events.forEach(function (event) {
@@ -48,7 +51,6 @@ export function on(node, events, listener, binding, options) {
     bag[ev][ns] = bag[ev][ns] || {}
 
     // reference listener
-    const id = listener._svgjsListenerId
     bag[ev][ns][id] = bag[ev][ns][id] || []
     bag[ev][ns][id].push(l)
 
@@ -65,7 +67,7 @@ export function off(node, events, listener, options) {
 
   // listener can be a function or a number
   if (typeof listener === 'function') {
-    listener = listener._svgjsListenerId
+    listener = listenerIds.get(listener)
     if (!listener) return
   }
 
