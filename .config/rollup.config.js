@@ -1,11 +1,17 @@
 import pkg from '../package.json' with { type: 'json' }
+import { execFileSync } from 'node:child_process'
 import babel from '@rollup/plugin-babel'
 import resolve from '@rollup/plugin-node-resolve'
 import commonjs from '@rollup/plugin-commonjs'
 import filesize from 'rollup-plugin-filesize'
 import terser from '@rollup/plugin-terser'
 
-const buildDate = Date()
+const commitTimestamp = execFileSync(
+  'git',
+  ['show', '-s', '--format=%ct', 'HEAD'],
+  { encoding: 'utf8' }
+).trim()
+const buildDate = new Date(Number(commitTimestamp) * 1000).toISOString()
 
 const headerLong = `/*!
 * ${pkg.name} - ${pkg.description}
