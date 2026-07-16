@@ -93,8 +93,8 @@ importers:
         specifier: ^10.0.0
         version: 10.0.0
       svgdom:
-        specifier: ^0.1.24
-        version: 0.1.24
+        specifier: ^0.1.25
+        version: 0.1.25
       typescript:
         specifier: ^5.4.5
         version: 5.4.5
@@ -3745,8 +3745,8 @@ packages:
     resolution: {integrity: sha512-ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w==}
     engines: {node: '>= 0.4'}
 
-  svgdom@0.1.24:
-    resolution: {integrity: sha512-CoDgijS8beI7B2taB3+ty/jpxyUBnv5gK/XCSMGHqgqhuo8G7SPU4upiLyMeKhE6ZhTNVvFBc4S92ur/OHTnig==}
+  svgdom@0.1.25:
+    resolution: {integrity: sha512-lb9WpJK2VvfTGzxUU9aceBUa/R6snLjZx/BBpjY3sOW4mqgbGQhZTXlq1lj/OZ7IY5Ee3CyH9JBXb4l9VtAaXQ==}
 
   tar-fs@2.1.1:
     resolution: {integrity: sha512-V0r2Y9scmbDRLCNex/+hYzvp/zyYjvFbHPNgVTKfQvVrb6guiE/fxP+XblDNR011utopbkex2nM4dHNV6GDsng==}
@@ -8476,7 +8476,7 @@ snapshots:
 
   supports-preserve-symlinks-flag@1.0.0: {}
 
-  svgdom@0.1.24:
+  svgdom@0.1.25:
     dependencies:
       fontkit: 2.0.4
       image-size: 1.2.1

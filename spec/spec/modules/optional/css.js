@@ -17,6 +17,48 @@ describe('css.js', () => {
           })
         })
 
+        it('preserves URL values containing colons', () => {
+          const rect = new Rect()
+          const style = rect.node.style
+          style.setProperty(
+            'background-image',
+            'url("https://example.com/a.svg#paint")'
+          )
+
+          expect(rect.css()['background-image']).toBe(
+            style.getPropertyValue('background-image')
+          )
+        })
+
+        it('preserves data URLs containing semicolons', () => {
+          const rect = new Rect()
+          const style = rect.node.style
+          style.setProperty(
+            '--data-image',
+            'url("data:image/svg+xml;charset=utf-8,<svg></svg>")'
+          )
+
+          expect(rect.css()['--data-image']).toBe(
+            style.getPropertyValue('--data-image')
+          )
+        })
+
+        it('preserves custom properties with quoted separators', () => {
+          const rect = new Rect()
+          const style = rect.node.style
+          style.setProperty('--label', '"left:right; top"')
+
+          expect(rect.css()['--label']).toBe(style.getPropertyValue('--label'))
+        })
+
+        it('preserves declaration priorities', () => {
+          const rect = new Rect()
+          const style = rect.node.style
+          style.setProperty('fill', 'red', 'important')
+
+          expect(rect.css().fill).toBe('red !important')
+        })
+
         it('returns an object with selected css properties', () => {
           const rect = new Rect({
             style: 'fill: none; outline-width: 1px; stroke: none'

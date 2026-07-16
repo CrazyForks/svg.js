@@ -5,16 +5,16 @@ import { registerMethods } from '../../utils/methods.js'
 export function css(style, val) {
   const ret = {}
   if (arguments.length === 0) {
-    // get full style as object
-    this.node.style.cssText
-      .split(/\s*;\s*/)
-      .filter(function (el) {
-        return !!el.length
-      })
-      .forEach(function (el) {
-        const t = el.split(/\s*:\s*/)
-        ret[t[0]] = t[1]
-      })
+    const declaration = this.node.style
+
+    for (let i = 0; i < declaration.length; i++) {
+      const name = declaration.item(i)
+      const value = declaration.getPropertyValue(name)
+      const priority = declaration.getPropertyPriority(name)
+
+      ret[name] = priority ? `${value} !${priority}` : value
+    }
+
     return ret
   }
 

@@ -10,6 +10,7 @@ The document follows the conventions described in [“Keep a CHANGELOG”](http:
 
 ### Fixed
 
+- return complete inline styles, including values containing colons and `!important`
 - allow zero width or height in animated `size()` calls
 - keep the animator scheduler running after a callback throws
 - honor zero-valued transform positions

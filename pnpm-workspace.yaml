@@ -4,4 +4,4 @@ allowBuilds:
 
 # This is our own freshly published release required by the reference resolver.
 minimumReleaseAgeExclude:
-  - svgdom@0.1.24
+  - svgdom@0.1.25
