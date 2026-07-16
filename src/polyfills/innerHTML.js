@@ -35,6 +35,10 @@ export function setOuterHTML(node, markupText) {
   }
 }
 
+export function serializeXML(node) {
+  return new XMLSerializer().serializeToString(node)
+}
+
 ;(function () {
   try {
     if (SVGElement.prototype.innerHTML) return
@@ -42,42 +46,12 @@ export function setOuterHTML(node, markupText) {
     return
   }
 
-  const serializeXML = function (node, output) {
-    const nodeType = node.nodeType
-    if (nodeType === 3) {
-      output.push(
-        node.textContent
-          .replace(/&/, '&amp;')
-          .replace(/</, '&lt;')
-          .replace('>', '&gt;')
-      )
-    } else if (nodeType === 1) {
-      output.push('<', node.tagName)
-      if (node.hasAttributes()) {
-        ;[].forEach.call(node.attributes, function (attrNode) {
-          output.push(' ', attrNode.name, '="', attrNode.value, '"')
-        })
-      }
-      output.push('>')
-      if (node.hasChildNodes()) {
-        ;[].forEach.call(node.childNodes, function (childNode) {
-          serializeXML(childNode, output)
-        })
-      } else {
-        // output.push('/>')
-      }
-      output.push('</', node.tagName, '>')
-    } else if (nodeType === 8) {
-      output.push('<!--', node.nodeValue, '-->')
-    }
-  }
-
   Object.defineProperty(SVGElement.prototype, 'innerHTML', {
     get: function () {
       const output = []
       let childNode = this.firstChild
       while (childNode) {
-        serializeXML(childNode, output)
+        output.push(serializeXML(childNode))
         childNode = childNode.nextSibling
       }
       return output.join('')
@@ -113,9 +87,7 @@ export function setOuterHTML(node, markupText) {
 
   Object.defineProperty(SVGElement.prototype, 'outerHTML', {
     get: function () {
-      const output = []
-      serializeXML(this, output)
-      return output.join('')
+      return serializeXML(this)
     },
     set: function (markupText) {
       setOuterHTML(this, markupText)

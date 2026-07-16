@@ -10,6 +10,7 @@ The document follows the conventions described in [“Keep a CHANGELOG”](http:
 
 ### Fixed
 
+- preserve namespaces and escaping when serializing SVG in the IE polyfill
 - make the IE `outerHTML` polyfill replace the target element and reject invalid markup
 - return complete inline styles, including values containing colons and `!important`
 - allow zero width or height in animated `size()` calls
