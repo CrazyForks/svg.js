@@ -71,13 +71,14 @@
   },
   "typings": "./svg.js.d.ts",
   "scripts": {
-    "build": "pnpm format && pnpm rollup",
+    "build": "pnpm rollup",
     "build:polyfills": "rollup -c .config/rollup.polyfills.js",
     "build:tests": "rollup -c .config/rollup.tests.js",
     "fix": "eslint ./src --fix",
     "lint": "eslint ./src",
     "prettier": "prettier --write .",
     "format": "pnpm fix && pnpm prettier",
+    "format:check": "prettier --check .",
     "rollup": "rollup -c .config/rollup.config.js",
     "server": "http-server ./ -d",
     "test": "karma start .config/karma.conf.cjs",
@@ -85,7 +86,7 @@
     "test:svgdom": "node ./spec/runSVGDomTest.js",
     "test:package": "node ./spec/package/package-contract.mjs",
     "zip": "zip -j dist/svg.js.zip -- LICENSE.txt README.md CHANGELOG.md dist/svg.js dist/svg.js.map dist/svg.min.js dist/svg.min.js.map dist/polyfills.js dist/polyfillsIE.js",
-    "prepublishOnly": "rm -rf ./dist && pnpm build && pnpm build:polyfills && pnpm test:package && pnpm test:svgdom && pnpm test",
+    "prepublishOnly": "pnpm format:check && pnpm lint && pnpm test:package && pnpm test:svgdom && pnpm test",
     "postpublish": "pnpm zip"
   },
   "devDependencies": {

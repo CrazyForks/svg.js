@@ -53,7 +53,12 @@ fs.mkdirSync(consumer)
 fs.cpSync(fixtures, consumer, { recursive: true })
 
 try {
-  execFileSync(pnpm, ['run', 'rollup'], { cwd: repo, stdio: 'inherit' })
+  fs.rmSync(path.join(repo, 'dist'), { recursive: true, force: true })
+  execFileSync(pnpm, ['run', 'build'], { cwd: repo, stdio: 'inherit' })
+  execFileSync(pnpm, ['run', 'build:polyfills'], {
+    cwd: repo,
+    stdio: 'inherit'
+  })
 
   const packed = JSON.parse(
     execFileSync(npm, ['pack', '--json', '--pack-destination', temp], {
