@@ -1,10 +1,11 @@
-/* globals describe, expect, it, jasmine */
+/* globals describe, expect, it, jasmine, pending */
 
 import { Image, Pattern, SVG } from '../../../src/main.js'
 import { getWindow } from '../../../src/utils/window.js'
 
 const { any, objectContaining, createSpy } = jasmine
 
+const IMAGE_LOAD_TIMEOUT = 250
 const url = 'spec/fixtures/pixel.png'
 describe('Image.js', () => {
   describe('()', () => {
@@ -35,9 +36,26 @@ describe('Image.js', () => {
       const image = new Image().load(url, spy)
     })
 
-    it('errors when image cant be loaded', () => {
-      // cant test this because of jasmine timeouts and browser disconnects
-    })
+    it(
+      'emits an error when the image cannot be loaded',
+      (done) => {
+        if (!getWindow().navigator) {
+          pending('Image decode errors are not supported')
+        }
+
+        const image = new Image()
+        image.on('load', () =>
+          done.fail('The invalid image unexpectedly loaded')
+        )
+        image.on('error', (event) => {
+          expect(event.type).toBe('error')
+          done()
+        })
+
+        image.load('data:image/png;base64,not-an-image')
+      },
+      IMAGE_LOAD_TIMEOUT
+    )
 
     // it('sets the width and height of the image automatically', () => {
     //   const image = new Image('spec/fixtures/pixel.png')

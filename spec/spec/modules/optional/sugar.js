@@ -2,6 +2,8 @@
 
 import { Rect, SVG, Matrix, Ellipse, Gradient } from '../../../../src/main.js'
 
+const IMAGE_LOAD_TIMEOUT = 250
+
 describe('sugar.js', () => {
   describe('Element/Runner', () => {
     describe('fill()', () => {
@@ -23,12 +25,20 @@ describe('sugar.js', () => {
           expect(rect.fill(pattern).attr('fill')).toBe(pattern.url())
         })
 
-        it('sets a fill pattern when image given', () => {
-          const canvas = SVG().addTo(container)
-          const image = canvas.image('spec/fictures/pixel.png')
-          const rect = canvas.rect(100, 100)
-          expect(rect.fill(image).attr('fill')).toBe(image.parent().url())
-        })
+        it(
+          'sets a fill pattern when image given',
+          (done) => {
+            const canvas = SVG().addTo(container)
+            const image = canvas.image('spec/fixtures/pixel.png', (event) => {
+              expect(event.type).toBe('load')
+              expect(event.target.complete).toBe(true)
+              done()
+            })
+            const rect = canvas.rect(100, 100)
+            expect(rect.fill(image).attr('fill')).toBe(image.parent().url())
+          },
+          IMAGE_LOAD_TIMEOUT
+        )
 
         it('sets an object of fill properties', () => {
           const rect = new Rect()
@@ -80,12 +90,20 @@ describe('sugar.js', () => {
           expect(rect.stroke(pattern).attr('stroke')).toBe(pattern.url())
         })
 
-        it('sets a stroke pattern when image given', () => {
-          const canvas = SVG().addTo(container)
-          const image = canvas.image('spec/fictures/pixel.png')
-          const rect = canvas.rect(100, 100)
-          expect(rect.stroke(image).attr('stroke')).toBe(image.parent().url())
-        })
+        it(
+          'sets a stroke pattern when image given',
+          (done) => {
+            const canvas = SVG().addTo(container)
+            const image = canvas.image('spec/fixtures/pixel.png', (event) => {
+              expect(event.type).toBe('load')
+              expect(event.target.complete).toBe(true)
+              done()
+            })
+            const rect = canvas.rect(100, 100)
+            expect(rect.stroke(image).attr('stroke')).toBe(image.parent().url())
+          },
+          IMAGE_LOAD_TIMEOUT
+        )
 
         it('sets an object of stroke properties', () => {
           const rect = new Rect()
