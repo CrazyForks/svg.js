@@ -8,6 +8,12 @@ The document follows the conventions described in [“Keep a CHANGELOG”](http:
 
 ## [Unreleased]
 
+### Changed
+
+- upgrade `svgdom` and the development dependencies, including Babel 8
+- migrate builds from Rollup to Rolldown and code-quality checks from ESLint and Prettier to Oxlint and Oxfmt
+- use the standard Browserslist defaults and remove obsolete Sauce Labs tooling
+
 ### Fixed
 
 - preserve namespaces and escaping when serializing SVG in the IE polyfill

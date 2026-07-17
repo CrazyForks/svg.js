@@ -22,7 +22,7 @@ function componentHex(component) {
 }
 
 function is(object, space) {
-  for (let i = space.length; i--; ) {
+  for (let i = space.length; i--;) {
     if (object[space[i]] == null) {
       return false
     }

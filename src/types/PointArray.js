@@ -109,7 +109,7 @@ export default class PointArray extends SVGArray {
       m = new Matrix(m)
     }
 
-    for (let i = this.length; i--; ) {
+    for (let i = this.length; i--;) {
       // Perform the matrix multiplication
       const [x, y] = this[i]
       this[i][0] = m.a * x + m.c * y + m.e

@@ -343,7 +343,7 @@ export default class Dom extends EventTarget {
     well.innerHTML = xmlOrFn
 
     // Transplant nodes into the fragment
-    for (let len = well.children.length; len--; ) {
+    for (let len = well.children.length; len--;) {
       fragment.appendChild(well.firstElementChild)
     }
 

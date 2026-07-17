@@ -77,11 +77,11 @@ describe('PathArray.js', () => {
 
       const toBeTested = p3.size(600, 200)
 
-      for (let i = toBeTested.length; i--; ) {
+      for (let i = toBeTested.length; i--;) {
         expect(toBeTested[i].shift().toUpperCase()).toBe(
           expected[i].shift().toUpperCase()
         )
-        for (let j = toBeTested[i].length; j--; ) {
+        for (let j = toBeTested[i].length; j--;) {
           expect(toBeTested[i][j]).toBeCloseTo(expected[i][j])
         }
       }

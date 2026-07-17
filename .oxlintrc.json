@@ -1,0 +1,16 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "rules": {
+    "no-unused-expressions": "off",
+    "no-unused-vars": [
+      "error",
+      {
+        "vars": "all",
+        "args": "after-used",
+        "caughtErrors": "none",
+        "ignoreRestSiblings": true,
+        "varsIgnorePattern": "^_"
+      }
+    ]
+  }
+}

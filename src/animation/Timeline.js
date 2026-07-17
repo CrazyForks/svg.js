@@ -236,7 +236,7 @@ export default class Timeline extends EventTarget {
     // runner always wins the reset even if the other runner started earlier
     // and therefore should win the attribute battle
     // this can be solved by resetting them backwards
-    for (let k = this._runners.length; k--; ) {
+    for (let k = this._runners.length; k--;) {
       // Get and run the current runner and ignore it if its inactive
       const runnerInfo = this._runners[k]
       const runner = runnerInfo.runner

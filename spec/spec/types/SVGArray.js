@@ -63,7 +63,7 @@ describe('SVGArray.js', () => {
       expect(array).toEqual(clone)
       expect(array).not.toBe(clone)
 
-      for (let i = array.length; i--; ) {
+      for (let i = array.length; i--;) {
         expect(array[i]).not.toBe(clone[i])
       }
     })
@@ -79,7 +79,7 @@ describe('SVGArray.js', () => {
       expect(array).toEqual(clone)
       expect(array).not.toBe(clone)
 
-      for (let i = array.length; i--; ) {
+      for (let i = array.length; i--;) {
         expect(array[i]).not.toBe(clone[i])
       }
     })

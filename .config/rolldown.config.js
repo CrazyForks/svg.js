@@ -1,10 +1,6 @@
 import pkg from '../package.json' with { type: 'json' }
 import { execFileSync } from 'node:child_process'
-import babel from '@rollup/plugin-babel'
-import resolve from '@rollup/plugin-node-resolve'
-import commonjs from '@rollup/plugin-commonjs'
-import filesize from 'rollup-plugin-filesize'
-import terser from '@rollup/plugin-terser'
+import babel from '@rolldown/plugin-babel'
 
 const commitTimestamp = execFileSync(
   'git',
@@ -28,24 +24,7 @@ const headerShort = `/*! ${pkg.name} v${pkg.version} ${pkg.license}*/;`
 
 const getBabelConfig = (node = false) => {
   let targets = pkg.browserslist
-  const plugins = node
-    ? []
-    : [
-        [
-          '@babel/transform-runtime',
-          {
-            version: '^7.24.7',
-            regenerator: false,
-            useESModules: true
-          }
-        ],
-        [
-          'polyfill-corejs3',
-          {
-            method: 'usage-pure'
-          }
-        ]
-      ]
+  const plugins = node ? [] : [['polyfill-corejs3', { method: 'usage-pure' }]]
 
   if (node) {
     targets = 'maintained node versions'
@@ -53,23 +32,9 @@ const getBabelConfig = (node = false) => {
 
   return babel({
     include: 'src/**',
-    babelHelpers: node ? 'bundled' : 'runtime',
-    babelrc: false,
-    targets: targets,
-    presets: [
-      [
-        '@babel/preset-env',
-        {
-          modules: false,
-          // useBuildins and plugin-transform-runtime are mutually exclusive
-          // https://github.com/babel/babel/issues/10271#issuecomment-528379505
-          // use babel-polyfills when released
-          useBuiltIns: false,
-          bugfixes: true,
-          loose: true
-        }
-      ]
-    ],
+    runtimeVersion: node ? undefined : pkg.devDependencies['@babel/runtime'],
+    targets,
+    presets: [['@babel/preset-env', { modules: false }]],
     plugins
   })
 }
@@ -120,30 +85,21 @@ const config = (node, min, esm = false) => ({
     format: esm ? 'esm' : node ? 'cjs' : 'iife',
     name: 'SVG',
     sourcemap: true,
-    banner: headerLong,
-    // remove Object.freeze
-    freeze: false
+    banner: min ? `${headerShort}\n${headerLong}` : headerLong,
+    minify: min
+      ? {
+          mangle: {
+            reserved: classes
+          }
+        }
+      : false
   },
   treeshake: {
     // property getter have no sideeffects
     propertyReadSideEffects: false
   },
-  plugins: [
-    resolve({ browser: !node }),
-    commonjs(),
-    getBabelConfig(node),
-    filesize(),
-    !min
-      ? {}
-      : terser({
-          mangle: {
-            reserved: classes
-          },
-          output: {
-            preamble: headerShort
-          }
-        })
-  ]
+  platform: node ? 'node' : 'browser',
+  plugins: [getBabelConfig(node)]
 })
 
 // [node, minified, esm]
