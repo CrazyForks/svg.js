@@ -57,6 +57,8 @@ declare module '@svgdotjs/svg.js' {
   function adopt<T extends Node>(node: T): SVGTypeMapping<T>
   function getClass(name: string): SVGClass | undefined
   function extend(parent: SVGClass | SVGClass[], obj: object): void
+  function registerMorphableType(type?: SVGClass | SVGClass[]): void
+  function makeMorphable(): void
 
   type EventNames = string | string[]
   type EventOptions = boolean | AddEventListenerOptions
@@ -441,7 +443,6 @@ declare module '@svgdotjs/svg.js' {
     valueOf(): T[]
     clone(): Array<T>
     toSet(): Set<T>
-    parse(a?: ArrayAlias<T>): T[]
     to(a: any): Morphable
   }
 
@@ -454,6 +455,7 @@ declare module '@svgdotjs/svg.js' {
     constructor(point: Point)
     constructor(x: number, y?: number)
     clone(): Point
+    to(a: any): Morphable
     transform(matrix: Matrix): this
     transformO(matrix: Matrix): this
     toArray(): ArrayXY
@@ -466,6 +468,7 @@ declare module '@svgdotjs/svg.js' {
 
     toLine(): LineAttr
     transform(m: Matrix | MatrixLike): PointArray
+    transformO(m: Matrix | MatrixLike): this
     move(x: number, y: number): this
     size(width: number, height: number): this
     bbox(): Box
@@ -487,7 +490,7 @@ declare module '@svgdotjs/svg.js' {
     unit: any
 
     toString(): string
-    toJSON(): object // same as toString
+    toJSON(): string
     toArray(): NumberUnit
     valueOf(): number
     plus(number: NumberAlias): Number
@@ -525,9 +528,6 @@ declare module '@svgdotjs/svg.js' {
 
     move(x: number, y: number): this
     size(width: number, height: number): this
-    equalCommands(other: PathArray): boolean
-    morph(pa: PathArray): this
-    parse(array?: ArrayAlias<PathCommand> | PathArrayAlias): PathCommand[]
     bbox(): Box
     to(a: any): Morphable
   }
@@ -619,14 +619,10 @@ declare module '@svgdotjs/svg.js' {
     c: number
     d: number
     e: number
-    f: number;
-
-    // *** To Be use by Test Only in restrict mode ***
-    [key: string]: any
+    f: number
 
     clone(): Matrix
     transform(o: MatrixLike | MatrixTransformParam): Matrix
-    compose(o: MatrixExtract): Matrix
     decompose(cx?: number, cy?: number): MatrixExtract
     multiply(m: MatrixAlias | Matrix): Matrix
     multiplyO(m: MatrixAlias | Matrix): this
@@ -805,7 +801,7 @@ declare module '@svgdotjs/svg.js' {
 
     merge(box: BoxLike): Box
     transform(m: Matrix): Box
-    addOffset(): this
+    addOffset(): Box
     toString(): string
     toArray(): number[]
     isNulled(): boolean
@@ -974,12 +970,13 @@ declare module '@svgdotjs/svg.js' {
     finish(): this
     speed(): number
     speed(speed: number): this
-    reverse(yes: boolean): this
+    reverse(yes?: boolean): this
     seek(dt: number): this
     time(): number
     time(time: number): this
     source(): Function
     source(fn: Function): this
+    terminate(): void
   }
 
   // Runner.js
@@ -1477,8 +1474,6 @@ declare module '@svgdotjs/svg.js' {
     dmove(x: NumberAlias, y: NumberAlias): this
     dx(x: NumberAlias): this
     dy(y: NumberAlias): this
-    event(): Event | CustomEvent
-
     fire(event: Event, data?: any, options?: CustomEventInit): this
     fire(event: string, data?: any, options?: CustomEventInit): this
     forget(...keys: string[]): this
@@ -1493,7 +1488,6 @@ declare module '@svgdotjs/svg.js' {
     id(): string
     id(id: string): this
     inside(x: number, y: number): boolean
-    is(cls: any): boolean
     linkTo(url: (link: A) => void): A
     linkTo(url: string): A
     masker(): Mask
@@ -1503,7 +1497,6 @@ declare module '@svgdotjs/svg.js' {
     matrixify(): Matrix
     memory(): object
     move(x: NumberAlias, y: NumberAlias): this
-    native(): LinkedHTMLElement
     next(): Element
     // off(events?: string | Event[], cb?: EventListener | number): this;
     // on(event: string, cb: Function, context?: object): this;
@@ -1543,23 +1536,11 @@ declare module '@svgdotjs/svg.js' {
     show(): this
     show(): this
     size(width?: NumberAlias, height?: NumberAlias): this
-    stop(jumpToEnd: boolean, clearQueue: boolean): Animation
-    stop(
-      offset?: NumberAlias | string,
-      color?: NumberAlias,
-      opacity?: NumberAlias
-    ): Stop
-    stop(val: {
-      offset?: NumberAlias | string
-      color?: NumberAlias
-      opacity?: NumberAlias
-    }): Stop
     timeline(): Timeline
     timeline(tl: Timeline): this
     toggleClass(name: string): this
     toParent(parent: Dom): this
     toParent(parent: Dom, i: number): this
-    toSvg(): this
     transform(): MatrixExtract
     transform(t: MatrixAlias, relative?: boolean): this
     unclip(): this
@@ -1677,8 +1658,8 @@ declare module '@svgdotjs/svg.js' {
     constructor(type: string)
     node: SVGGradientElement
 
-    at(offset?: number, color?: ColorAlias, opacity?: number): Stop
-    at(opts: StopProperties): Stop
+    stop(offset?: number, color?: ColorAlias, opacity?: number): Stop
+    stop(opts: StopProperties): Stop
     url(): string
     toString(): string
     targets(): List<Element>
@@ -1951,7 +1932,6 @@ declare module '@svgdotjs/svg.js' {
     get(i: number): Tspan
     path(): TextPath
     path(d: PathArrayAlias | Path): TextPath
-    track(): Element
     ax(): string
     ax(x: string): this
     ay(): string
