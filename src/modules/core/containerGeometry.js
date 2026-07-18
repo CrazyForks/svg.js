@@ -32,8 +32,8 @@ export function dmove(dx, dy) {
     const matrix = m.translate(dx, dy).transform(m.inverse())
     // Calculate new x and y from old box
     const p = new Point(bbox.x, bbox.y).transform(matrix)
-    // Move element
-    child.move(p.x, p.y)
+    // Move element by the calculated bbox delta
+    child.dmove(p.x - bbox.x, p.y - bbox.y)
   })
 
   return this

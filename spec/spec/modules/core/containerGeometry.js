@@ -1,6 +1,7 @@
-/* globals describe, expect, it, jasmine, spyOn, container */
+/* globals describe, expect, it, jasmine, pending, spyOn, container */
 
 import { Box, create, Element, G, Rect, SVG } from '../../../../src/main.js'
+import { getWindow } from '../../../../src/utils/window.js'
 
 const { any, objectContaining } = jasmine
 
@@ -121,6 +122,28 @@ describe('containerGeometry.js', () => {
           height: box.height
         })
       )
+    })
+
+    it('moves groups containing use elements by their bbox delta', () => {
+      if (!getWindow().navigator) {
+        pending('Use element bounding boxes are not supported')
+      }
+
+      const canvas = SVG().addTo(container)
+      const defs = canvas.defs()
+      const large = defs.rect(40, 40).center(0, 0)
+      const small = defs.rect(20, 20).center(0, 0)
+      const group = canvas.group()
+      group.use(large)
+      group.use(small)
+
+      group.center(100, 50)
+
+      const box = group.bbox()
+      expect(box.cx).toBeCloseTo(100, 4)
+      expect(box.cy).toBeCloseTo(50, 4)
+      expect(box.width).toBeCloseTo(40, 4)
+      expect(box.height).toBeCloseTo(40, 4)
     })
   })
 
