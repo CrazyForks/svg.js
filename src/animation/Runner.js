@@ -682,7 +682,14 @@ extend(Runner, {
       return this.styleAttr(type, { [nameOrAttrs]: val })
     }
 
-    let attrs = nameOrAttrs
+    const attrs = nameOrAttrs
+    const history = this._history[type]
+    // Generic retargeting replaces an uninitialised queue entry. Attribute and
+    // style targets can be merged before their shared initialiser runs instead.
+    if (history && !history.caller.initialised && history.caller.retarget) {
+      history.caller.retarget.call(this, attrs)
+      return this
+    }
     if (this._tryRetarget(type, attrs)) return this
 
     let morpher = new Morphable(this._stepper).to(attrs)
@@ -701,8 +708,8 @@ extend(Runner, {
         const newKeys = Object.keys(newToAttrs)
         const differences = difference(newKeys, keys)
 
-        // If their are new keys, initialize them and add them to morpher
-        if (differences.length) {
+        // If there are new keys, initialize them and add them to morpher
+        if (differences.length && morpher.from() != null) {
           // Get the values
           const addedFromAttrs = this.element()[type](differences)
 
@@ -715,17 +722,16 @@ extend(Runner, {
         }
 
         // Get the object from the morpher
-        const oldToAttrs = new ObjectBag(morpher.to()).valueOf()
+        const mergedToAttrs = new ObjectBag(morpher.to()).valueOf()
 
         // Merge in new attributes
-        Object.assign(oldToAttrs, newToAttrs)
+        Object.assign(mergedToAttrs, newToAttrs)
 
         // Change morpher target
-        morpher.to(oldToAttrs)
+        morpher.to(mergedToAttrs)
 
         // Make sure that we save the work we did so we don't need it to do again
-        keys = newKeys
-        attrs = newToAttrs
+        keys = Object.keys(mergedToAttrs)
       }
     )
 

@@ -1219,6 +1219,58 @@ describe('Runner.js', () => {
           expect(element.x()).toBe(2.5)
         })
 
+        it('combines chained attributes before the animation starts', () => {
+          const element = new Rect().move(0, 0)
+          const runner = new Runner(100).ease('-').element(element)
+          runner.attr({ x: 10 }).attr({ y: 20 })
+          runner.step(100)
+
+          expect(element.x()).toBe(10)
+          expect(element.y()).toBe(20)
+        })
+
+        it('combines more than two attribute calls before starting', () => {
+          const element = new Rect().move(0, 0).size(10, 10)
+          const runner = new Runner(100).ease('-').element(element)
+          runner.attr({ x: 10 }).attr({ y: 20 }).attr({ width: 30 })
+          runner.step(100)
+
+          expect(element.attr(['x', 'y', 'width'])).toEqual({
+            x: 10,
+            y: 20,
+            width: 30
+          })
+        })
+
+        it('uses the last target for a repeated attribute before starting', () => {
+          const element = new Rect().x(0)
+          const runner = new Runner(100).ease('-').element(element)
+          runner.attr({ x: 10 }).attr({ x: 20 })
+          runner.step(100)
+
+          expect(element.x()).toBe(20)
+        })
+
+        it('combines chained string attribute calls before starting', () => {
+          const element = new Rect().move(0, 0)
+          const runner = new Runner(100).ease('-').element(element)
+          runner.attr('x', 10).attr('y', 20)
+          runner.step(100)
+
+          expect(element.x()).toBe(10)
+          expect(element.y()).toBe(20)
+        })
+
+        it('combines chained css calls before starting', () => {
+          const element = new Rect().css({ opacity: 0, 'fill-opacity': 0 })
+          const runner = new Runner(100).ease('-').element(element)
+          runner.css('opacity', 1).css('fill-opacity', 1)
+          runner.step(100)
+
+          expect(element.css('opacity')).toBe('1')
+          expect(element.css('fill-opacity')).toBe('1')
+        })
+
         it('it also works when the object contains other morphable values', () => {
           const element = new Rect().fill('#fff').stroke('#000')
           const runner = new Runner(100).ease('-').element(element)
