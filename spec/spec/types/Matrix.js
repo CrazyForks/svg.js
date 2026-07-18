@@ -124,7 +124,7 @@ describe('Matrix.js', () => {
       var decomposed = matrix.decompose()
 
       // Get rid of the matrix values before recomposing with the matrix constructor
-      for (const prop in 'abcdef') delete decomposed[prop]
+      for (const prop of 'abcdef') delete decomposed[prop]
 
       var composed = new Matrix(decomposed)
       expect(matrix.a).toBeCloseTo(composed.a)
@@ -133,6 +133,51 @@ describe('Matrix.js', () => {
       expect(matrix.d).toBeCloseTo(composed.d)
       expect(matrix.e).toBeCloseTo(composed.e)
       expect(matrix.f).toBeCloseTo(composed.f)
+    })
+
+    it('can be recomposed around a nonzero origin', () => {
+      const matrix = new Matrix({ skewY: 50, origin: [150, 150] })
+      const decomposed = matrix.decompose(150, 150)
+
+      for (const prop of 'abcdef') delete decomposed[prop]
+
+      const composed = new Matrix(decomposed)
+      for (const prop of 'abcdef') {
+        expect(composed[prop]).toBeCloseTo(matrix[prop], 10)
+      }
+    })
+
+    it('recomposes nonuniform affine transforms around nonzero origins', () => {
+      const transforms = [
+        {
+          scaleX: 2,
+          scaleY: 0.5,
+          shear: 2,
+          rotate: 50,
+          origin: [600, 600],
+          translate: [100, 100]
+        },
+        {
+          scaleX: -1,
+          scaleY: 2,
+          shear: -1.25,
+          rotate: 170,
+          origin: [-30, 75],
+          translate: [12, -7]
+        }
+      ]
+
+      for (const transform of transforms) {
+        const matrix = new Matrix(transform)
+        const decomposed = matrix.decompose(...transform.origin)
+
+        for (const prop of 'abcdef') delete decomposed[prop]
+
+        const composed = new Matrix(decomposed)
+        for (const prop of 'abcdef') {
+          expect(composed[prop]).toBeCloseTo(matrix[prop], 10)
+        }
+      }
     })
   })
 

@@ -168,8 +168,6 @@ export default class Matrix {
     const sx = ccw * Math.sqrt(a * a + b * b)
     const thetaRad = Math.atan2(ccw * b, ccw * a)
     const theta = (180 / Math.PI) * thetaRad
-    const ct = Math.cos(thetaRad)
-    const st = Math.sin(thetaRad)
 
     // We can then solve the y basis vector simultaneously to get the other
     // two affine parameters directly from these parameters
@@ -177,8 +175,8 @@ export default class Matrix {
     const sy = (c * sx) / (lam * a - b) || (d * sx) / (lam * b + a)
 
     // Use the translations
-    const tx = e - cx + cx * ct * sx + cy * (lam * ct * sx - st * sy)
-    const ty = f - cy + cx * st * sx + cy * (lam * st * sx + ct * sy)
+    const tx = e - cx + cx * a + cy * c
+    const ty = f - cy + cx * b + cy * d
 
     // Construct the decomposition and return it
     return {

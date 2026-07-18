@@ -15,6 +15,7 @@ import {
   Color,
   Box,
   Polygon,
+  Point,
   PointArray
 } from '../../../src/main.js'
 import { FakeRunner, RunnerArray } from '../../../src/animation/Runner.js'
@@ -1541,6 +1542,51 @@ describe('Runner.js', () => {
           jasmine.RequestAnimationFrame.tick(1)
 
           expect(element.matrix()).toEqual(new Matrix().translate(100, 0))
+        })
+
+        it('finishes skewY at the direct transform matrix', () => {
+          const element = new Rect({ width: 300, height: 300 })
+          const runner = new Runner(100).ease('-').element(element)
+          const expected = new Matrix({ skewY: 50, origin: [150, 150] })
+          runner.transform({ skewY: 50, origin: [150, 150] })
+          runner.step(100)
+          jasmine.RequestAnimationFrame.tick(1)
+
+          for (const prop of 'abcdef') {
+            expect(element.matrix()[prop]).toBeCloseTo(expected[prop], 10)
+          }
+        })
+
+        it('moves a later rotation origin with an earlier orbit transform', () => {
+          const moon = new Rect()
+          const runner = new Runner(100).ease('-').element(moon)
+          const sunCenter = [500, 300]
+          const earthStartCenter = [1000, 300]
+
+          runner.transform({ rotate: 360, origin: sunCenter }, true)
+          runner.transform({ rotate: 3600, origin: earthStartCenter }, true)
+          runner.step(25)
+          jasmine.RequestAnimationFrame.tick(1)
+
+          const earthOrbit = new Matrix().rotate(90, ...sunCenter)
+          const earthCurrentCenter = new Point(...earthStartCenter).transform(
+            earthOrbit
+          )
+          const expected = earthOrbit.rotate(
+            900,
+            earthCurrentCenter.x,
+            earthCurrentCenter.y
+          )
+
+          for (const prop of 'abcdef') {
+            expect(moon.matrix()[prop]).toBeCloseTo(expected[prop], 10)
+          }
+
+          const moonCurrentCenter = new Point(1200, 300).transform(
+            moon.matrix()
+          )
+          expect(moonCurrentCenter.x).toBeCloseTo(500, 10)
+          expect(moonCurrentCenter.y).toBeCloseTo(600, 10)
         })
 
         it('retargets an affine transformation correctly', () => {

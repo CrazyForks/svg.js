@@ -16,6 +16,7 @@ The document follows the conventions described in [“Keep a CHANGELOG”](http:
 - parse transform lists containing whitespace before argument lists ([#1333](https://github.com/svgdotjs/svg.js/issues/1333))
 - move groups containing centered `use` elements by the correct delta ([#1332](https://github.com/svgdotjs/svg.js/issues/1332))
 - support camelCase CSS names and nullable CSS setters at runtime and in TypeScript ([#1344](https://github.com/svgdotjs/svg.js/issues/1344))
+- keep affine `skewY` animations on their direct-transform endpoint ([#1222](https://github.com/svgdotjs/svg.js/issues/1222))
 
 ## [3.2.6]
 
