@@ -76,6 +76,13 @@ describe('css.js', () => {
           expect(rect.css('fill')).toBe('none')
         })
 
+        it('accepts camelCase property names', () => {
+          const rect = new Rect().css('font-size', '12px')
+
+          expect(rect.css('fontSize')).toBe('12px')
+          expect(rect.css(['fontSize'])).toEqual({ fontSize: '12px' })
+        })
+
         it('correctly returns css vars', () => {
           const rect = new Rect({
             style: '--foo: red;'
@@ -121,6 +128,15 @@ describe('css.js', () => {
             fill: 'none',
             stroke: 'none'
           })
+        })
+
+        it('sets camelCase property names', () => {
+          const rect = new Rect()
+            .css('strokeWidth', '2px')
+            .css({ fontSize: '12px' })
+
+          expect(rect.css('stroke-width')).toBe('2px')
+          expect(rect.css('font-size')).toBe('12px')
         })
 
         it('removes property if empty string is passed as value', () => {

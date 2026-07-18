@@ -1,5 +1,8 @@
 import { isBlank } from '../core/regex.js'
 import { registerMethods } from '../../utils/methods.js'
+import { unCamelCase } from '../../utils/utils.js'
+
+const cssName = (name) => (name.startsWith('--') ? name : unCamelCase(name))
 
 // Dynamic style generator
 export function css(style, val) {
@@ -22,7 +25,7 @@ export function css(style, val) {
     // get style properties as array
     if (Array.isArray(style)) {
       for (const name of style) {
-        const cased = name
+        const cased = cssName(name)
         ret[name] = this.node.style.getPropertyValue(cased)
       }
       return ret
@@ -30,7 +33,7 @@ export function css(style, val) {
 
     // get style for property
     if (typeof style === 'string') {
-      return this.node.style.getPropertyValue(style)
+      return this.node.style.getPropertyValue(cssName(style))
     }
 
     // set styles in object
@@ -38,7 +41,7 @@ export function css(style, val) {
       for (const name in style) {
         // set empty string if null/undefined/'' was given
         this.node.style.setProperty(
-          name,
+          cssName(name),
           style[name] == null || isBlank.test(style[name]) ? '' : style[name]
         )
       }
@@ -48,7 +51,7 @@ export function css(style, val) {
   // set style for property
   if (arguments.length === 2) {
     this.node.style.setProperty(
-      style,
+      cssName(style),
       val == null || isBlank.test(val) ? '' : val
     )
   }

@@ -11,21 +11,24 @@ declare type CamelToKebab<S extends string> = S extends `${infer T}${infer U}`
     : `${Lowercase<T>}-${CamelToKebab<U>}`
   : S
 
-declare type ConvertKeysToKebab<T> = {
-  [K in keyof T as CamelToKebab<K & string>]: T[K]
+declare type NativeCSSStyleName = {
+  [K in keyof CSSStyleDeclaration]: CSSStyleDeclaration[K] extends string
+    ? K
+    : never
+}[keyof CSSStyleDeclaration] &
+  string
+
+declare type CSSStyleName =
+  | NativeCSSStyleName
+  | CamelToKebab<NativeCSSStyleName>
+  | `--${string}`
+
+declare type CSSStyleDeclarationWithVars = {
+  [K in CSSStyleName]: string
 }
 
-declare type KebabCSSStyleDeclaration = ConvertKeysToKebab<CSSStyleDeclaration>
-
-// trick to have nice attribute list for CSS
-declare type CSSStyleName = Exclude<
-  keyof KebabCSSStyleDeclaration,
-  'parent-rule' | 'length'
->
-
-// create our own style declaration that includes css vars
-interface CSSStyleDeclarationWithVars extends KebabCSSStyleDeclaration {
-  [key: `--${string}`]: string
+declare type CSSStyleSetter = {
+  [K in CSSStyleName]?: string | null
 }
 
 declare module '@svgdotjs/svg.js' {
@@ -1246,9 +1249,9 @@ declare module '@svgdotjs/svg.js' {
     ): Partial<CSSStyleDeclarationWithVars>
     css<T extends CSSStyleName>(
       style: T,
-      val: CSSStyleDeclarationWithVars[T]
+      val: CSSStyleDeclarationWithVars[T] | null | undefined
     ): this
-    css(style: Partial<CSSStyleDeclarationWithVars>): this
+    css(style: CSSStyleSetter): this
     show(): this
     hide(): this
     visible(): boolean
