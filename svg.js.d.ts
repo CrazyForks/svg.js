@@ -32,6 +32,32 @@ declare type CSSStyleSetter = {
 }
 
 declare module '@svgdotjs/svg.js' {
+  interface SVGEventMap extends SVGElementEventMap {}
+
+  type SVGEventTargetLike = {
+    getEventHolder(): unknown
+    getEventTarget(): unknown
+  }
+
+  type SVGTypedEventTarget =
+    | Window
+    | Document
+    | SVGElement
+    | HTMLElement
+    | SVGEventTargetLike
+
+  type SVGEventMapFor<T> = T extends Window
+    ? WindowEventMap
+    : T extends Document
+      ? DocumentEventMap
+      : T extends SVGElement
+        ? SVGEventMap
+        : T extends HTMLElement
+          ? HTMLElementEventMap
+          : T extends SVGEventTargetLike
+            ? SVGEventMap
+            : never
+
   function SVG(): Svg
   function SVG(el: undefined): Svg
   function SVG(el: null): null
@@ -65,16 +91,35 @@ declare module '@svgdotjs/svg.js' {
 
   type EventNames = string | string[]
   type EventOptions = boolean | AddEventListenerOptions
+  function on<
+    T extends SVGTypedEventTarget,
+    K extends Extract<keyof SVGEventMapFor<T>, string>
+  >(
+    el: T,
+    events: K,
+    cb: (event: SVGEventMapFor<T>[K]) => any,
+    binding?: any,
+    options?: EventOptions
+  ): void
   function on(
-    el: Node | Window | EventTarget,
+    el: Node | Window | EventTarget | globalThis.EventTarget,
     events: EventNames,
     cb: EventListener,
     binding?: any,
     options?: EventOptions
   ): void
 
+  function off<
+    T extends SVGTypedEventTarget,
+    K extends Extract<keyof SVGEventMapFor<T>, string>
+  >(
+    el: T,
+    events: K,
+    cb?: ((event: SVGEventMapFor<T>[K]) => any) | number,
+    options?: EventOptions
+  ): void
   function off(
-    el: Node | Window | EventTarget,
+    el: Node | Window | EventTarget | globalThis.EventTarget,
     events?: EventNames,
     cb?: EventListener | number,
     options?: EventOptions
@@ -684,10 +729,21 @@ declare module '@svgdotjs/svg.js' {
     getEventHolder(): this | Node
     getEventTarget(): this | Node
 
+    on<K extends Extract<keyof SVGEventMap, string>>(
+      events: K,
+      cb: (event: SVGEventMap[K]) => any,
+      binding?: any,
+      options?: EventOptions
+    ): this
     on(
       events: EventNames,
       cb: EventListener,
       binding?: any,
+      options?: EventOptions
+    ): this
+    off<K extends Extract<keyof SVGEventMap, string>>(
+      events: K,
+      cb?: ((event: SVGEventMap[K]) => any) | number,
       options?: EventOptions
     ): this
     off(

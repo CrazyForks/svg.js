@@ -17,6 +17,7 @@ The document follows the conventions described in [“Keep a CHANGELOG”](http:
 - move groups containing centered `use` elements by the correct delta ([#1332](https://github.com/svgdotjs/svg.js/issues/1332))
 - support camelCase CSS names and nullable CSS setters at runtime and in TypeScript ([#1344](https://github.com/svgdotjs/svg.js/issues/1344))
 - keep affine `skewY` animations on their direct-transform endpoint ([#1222](https://github.com/svgdotjs/svg.js/issues/1222))
+- infer specific DOM and custom event types in `on()` and `off()` ([#1217](https://github.com/svgdotjs/svg.js/issues/1217), [#1320](https://github.com/svgdotjs/svg.js/pull/1320))
 
 ## [3.2.6]
 
