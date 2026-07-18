@@ -131,6 +131,38 @@ describe('EventTarget.js', () => {
       target.dispatch('event')
       expect(spy.calls.count()).toBe(1)
     })
+
+    it('treats prototype-related event names and namespaces as data', () => {
+      const target = new EventTarget()
+      const spy = createSpy()
+      const prototypeProperties = Object.getOwnPropertyNames(Object.prototype)
+      const constructorProperties = Object.getOwnPropertyNames(Object)
+
+      try {
+        target.on('__proto__.polluted', spy)
+        target.on('event.__proto__', spy)
+        target.on('constructor.polluted', spy)
+        target.on('event.constructor', spy)
+
+        expect(Object.getOwnPropertyNames(Object.prototype)).toEqual(
+          prototypeProperties
+        )
+        expect(Object.getOwnPropertyNames(Object)).toEqual(
+          constructorProperties
+        )
+      } finally {
+        for (const property of Object.getOwnPropertyNames(Object.prototype)) {
+          if (!prototypeProperties.includes(property)) {
+            delete Object.prototype[property]
+          }
+        }
+        for (const property of Object.getOwnPropertyNames(Object)) {
+          if (!constructorProperties.includes(property)) {
+            delete Object[property]
+          }
+        }
+      }
+    })
   })
 
   describe('removeEventListener()', () => {

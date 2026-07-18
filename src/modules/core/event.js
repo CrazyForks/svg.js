@@ -5,13 +5,14 @@ import { globals } from '../../utils/window.js'
 let listenerId = 0
 const eventStore = new WeakMap()
 const listenerIds = new WeakMap()
+const createEventMap = () => Object.create(null)
 
 export function getEvents(instance) {
   const holder = instance.getEventHolder()
   let bag = eventStore.get(holder)
 
   if (!bag) {
-    bag = {}
+    bag = createEventMap()
     eventStore.set(holder, bag)
   }
 
@@ -48,8 +49,8 @@ export function on(node, events, listener, binding, options) {
     const ns = event.split('.')[1] || '*'
 
     // ensure valid object
-    bag[ev] = bag[ev] || {}
-    bag[ev][ns] = bag[ev][ns] || {}
+    bag[ev] = bag[ev] || createEventMap()
+    bag[ev][ns] = bag[ev][ns] || createEventMap()
 
     // reference listener
     bag[ev][ns][id] = bag[ev][ns][id] || []

@@ -6,6 +6,12 @@ The document follows the conventions described in [“Keep a CHANGELOG”](http:
 
 ====
 
+## [Unreleased]
+
+### Fixed
+
+- prevent prototype pollution through event names and namespaces ([#1343](https://github.com/svgdotjs/svg.js/issues/1343))
+
 ## [3.2.6]
 
 ### Changed
