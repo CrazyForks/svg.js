@@ -1481,6 +1481,16 @@ describe('Runner.js', () => {
           )
         })
 
+        it('does not treat the relative option as a translation value', () => {
+          const element = new Rect()
+          const runner = new Runner(100).ease('-').element(element)
+          runner.transform({ translate: [100, 0], relative: true })
+          runner.step(100)
+          jasmine.RequestAnimationFrame.tick(1)
+
+          expect(element.matrix()).toEqual(new Matrix().translate(100, 0))
+        })
+
         it('retargets an affine transformation correctly', () => {
           const element = new Rect()
           const runner = new Runner(() => 1).element(element)

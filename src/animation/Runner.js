@@ -829,7 +829,13 @@ extend(Runner, {
         element._currentTransform(this)
       )
 
-      let target = new Matrix({ ...transforms, origin: [x, y] })
+      const targetTransforms = { ...transforms, origin: [x, y] }
+      // `relative: true` selects relative runner composition, but Matrix also
+      // accepts `relative` as a translation alias where true becomes one unit.
+      if (targetTransforms.relative === true) {
+        delete targetTransforms.relative
+      }
+      let target = new Matrix(targetTransforms)
       let start = this._isDeclarative && current ? current : startTransform
 
       if (affine) {

@@ -11,6 +11,7 @@ The document follows the conventions described in [“Keep a CHANGELOG”](http:
 ### Fixed
 
 - prevent prototype pollution through event names and namespaces ([#1343](https://github.com/svgdotjs/svg.js/issues/1343))
+- avoid adding one unit to relative transform animation targets ([#1336](https://github.com/svgdotjs/svg.js/issues/1336))
 
 ## [3.2.6]
 
