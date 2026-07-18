@@ -13,6 +13,7 @@ The document follows the conventions described in [“Keep a CHANGELOG”](http:
 - prevent prototype pollution through event names and namespaces ([#1343](https://github.com/svgdotjs/svg.js/issues/1343))
 - avoid adding one unit to relative transform animation targets ([#1336](https://github.com/svgdotjs/svg.js/issues/1336))
 - preserve every target in chained attribute animations ([#1325](https://github.com/svgdotjs/svg.js/issues/1325))
+- parse transform lists containing whitespace before argument lists ([#1333](https://github.com/svgdotjs/svg.js/issues/1333))
 
 ## [3.2.6]
 

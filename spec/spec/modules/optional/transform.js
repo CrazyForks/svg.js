@@ -37,6 +37,17 @@ describe('transform.js', () => {
         new Matrix().skewY(20).skewX(10).skew(1, 2).rotate(45).translate(10, 20)
       )
     })
+
+    it('allows whitespace before transform argument lists', () => {
+      const rect = new Rect().attr(
+        'transform',
+        'translate (10, 20) rotate\t(45)'
+      )
+
+      expect(rect.matrixify()).toEqual(
+        new Matrix().rotate(45).translate(10, 20)
+      )
+    })
   })
 
   describe('toParent()', () => {

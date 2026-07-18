@@ -18,7 +18,7 @@ export function matrixify() {
       // generate key => value pairs
       const kv = str.trim().split('(')
       return [
-        kv[0],
+        kv[0].trim(),
         kv[1].split(delimiter).map(function (str) {
           return parseFloat(str)
         })
