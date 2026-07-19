@@ -1061,15 +1061,6 @@ describe('Runner.js', () => {
           expect(runner.transforms).toEqual(new Matrix())
         })
       })
-
-      describe('clearTransformsFromQueue', () => {
-        it('deletes all functions from the queue which are transformations', () => {
-          const runner = new Runner().queue(initFn, runFn)
-          runner.transform({ translate: [10, 20] })
-          runner.clearTransformsFromQueue()
-          expect(runner._queue.length).toBe(1)
-        })
-      })
     })
 
     describe('Element', () => {
@@ -1091,16 +1082,6 @@ describe('Runner.js', () => {
           spyOn(element, 'animate')
           element.delay(100, 'now')
           expect(element.animate).toHaveBeenCalledWith(0, 100, 'now')
-        })
-      })
-
-      describe('_clearTransformRunnersBefore()', () => {
-        it('calls clearBefore on the runner array', () => {
-          const rect = new Rect()
-          rect._prepareRunner()
-          const spy = spyOn(rect._transformationRunners, 'clearBefore')
-          rect._clearTransformRunnersBefore({ id: 1 })
-          expect(spy).toHaveBeenCalledWith(1)
         })
       })
 
@@ -1725,10 +1706,177 @@ describe('Runner.js', () => {
           // when every runner had the chance to add its bit of transforms
           jasmine.RequestAnimationFrame.tick(1)
 
-          expect(runner1._queue.length).toBe(0)
+          expect(runner1._queue.length).toBe(1)
 
           // The origin is transformed with every
           expect(element.matrix()).toEqual(new Matrix().scale(1.5).rotate(22.5))
+        })
+
+        it('restores preceding transforms when seeking before an absolute transform', () => {
+          const element = new Rect()
+          const timeline = new Timeline(() => 0)
+          const relativeRunner = new Runner(100)
+            .ease('-')
+            .element(element)
+            .timeline(timeline)
+            .transform({ translate: [100, 0] }, true)
+          const absoluteRunner = new Runner(100)
+            .ease('-')
+            .element(element)
+            .timeline(timeline)
+            .transform({ scale: 2 })
+
+          relativeRunner.schedule(0, 'absolute')
+          absoluteRunner.schedule(50, 'absolute')
+
+          timeline.time(25)
+          jasmine.RequestAnimationFrame.tick(1)
+          expect(element.matrix()).toEqual(new Matrix().translate(25, 0))
+
+          timeline.time(75)
+          jasmine.RequestAnimationFrame.tick(1)
+          const forwardMatrix = element.matrix()
+          expect(forwardMatrix).toEqual(new Matrix(1.25, 0, 0, 1.25, 18.75, 0))
+
+          timeline.time(40)
+          jasmine.RequestAnimationFrame.tick(1)
+          expect(element.matrix()).toEqual(new Matrix().translate(40, 0))
+
+          timeline.time(75)
+          jasmine.RequestAnimationFrame.tick(1)
+          expect(element.matrix()).toEqual(forwardMatrix)
+        })
+
+        it('keeps a reversed transform active at time zero', () => {
+          const element = new Rect()
+          const timeline = new Timeline(() => 0)
+          const runner = new Runner(100)
+            .ease('-')
+            .reverse(true)
+            .element(element)
+            .timeline(timeline)
+            .transform({ translate: [100, 0] }, true)
+            .schedule(0, 'absolute')
+
+          timeline.time(50)
+          jasmine.RequestAnimationFrame.tick(1)
+          expect(element.matrix()).toEqual(new Matrix().translate(50, 0))
+
+          timeline.time(0)
+          jasmine.RequestAnimationFrame.tick(1)
+          expect(element.matrix()).toEqual(new Matrix().translate(100, 0))
+
+          timeline.time(1)
+          jasmine.RequestAnimationFrame.tick(1)
+          expect(element.matrix()).toEqual(new Matrix().translate(99, 0))
+        })
+
+        it('deactivates a delayed reversed transform before its start', () => {
+          const element = new Rect()
+          const timeline = new Timeline(() => 0)
+          new Runner(100)
+            .ease('-')
+            .element(element)
+            .timeline(timeline)
+            .transform({ translate: [100, 0] }, true)
+            .schedule(0, 'absolute')
+          new Runner(100)
+            .ease('-')
+            .reverse(true)
+            .element(element)
+            .timeline(timeline)
+            .transform({ scale: 2 })
+            .schedule(50, 'absolute')
+
+          timeline.time(25)
+          jasmine.RequestAnimationFrame.tick(1)
+          timeline.time(75)
+          jasmine.RequestAnimationFrame.tick(1)
+          timeline.time(40)
+          jasmine.RequestAnimationFrame.tick(1)
+          expect(element.matrix()).toEqual(new Matrix().translate(40, 0))
+
+          timeline.time(50)
+          jasmine.RequestAnimationFrame.tick(1)
+          expect(element.matrix()).toEqual(new Matrix().scale(2))
+
+          timeline.time(51)
+          jasmine.RequestAnimationFrame.tick(1)
+          expect(element.matrix()).toEqual(
+            new Matrix(1.99, 0, 0, 1.99, 0.25, 0)
+          )
+        })
+
+        it('initializes a delayed reversed transform at its exact start', () => {
+          const element = new Rect()
+          const timeline = new Timeline(() => 0)
+          new Runner(100)
+            .ease('-')
+            .element(element)
+            .timeline(timeline)
+            .transform({ translate: [100, 0] }, true)
+            .schedule(0, 'absolute')
+          new Runner(100)
+            .ease('-')
+            .reverse(true)
+            .element(element)
+            .timeline(timeline)
+            .transform({ scale: 2 })
+            .schedule(50, 'absolute')
+
+          timeline.time(25)
+          jasmine.RequestAnimationFrame.tick(1)
+          timeline.time(50)
+          jasmine.RequestAnimationFrame.tick(1)
+          expect(element.matrix()).toEqual(new Matrix().scale(2))
+
+          timeline.time(51)
+          jasmine.RequestAnimationFrame.tick(1)
+          expect(element.matrix().decompose().scaleX).toBeCloseTo(1.99, 10)
+        })
+
+        it('initializes a delayed reversed origin after preceding transforms', () => {
+          const element = new Rect({ width: 100, height: 100 })
+          const timeline = new Timeline(() => 0)
+          new Runner(100)
+            .ease('-')
+            .element(element)
+            .timeline(timeline)
+            .transform({ translate: [100, 0] }, true)
+            .schedule(0, 'absolute')
+          new Runner(100)
+            .ease('-')
+            .reverse(true)
+            .element(element)
+            .timeline(timeline)
+            .transform({ scale: 2 }, true)
+            .schedule(50, 'absolute')
+
+          timeline.time(25)
+          jasmine.RequestAnimationFrame.tick(1)
+          timeline.time(50)
+          jasmine.RequestAnimationFrame.tick(1)
+
+          expect(element.matrix()).toEqual(
+            new Matrix().translate(50, 0).scale(2, 100, 50)
+          )
+        })
+
+        it('does not register delayed reversed attribute runners as transforms', () => {
+          const element = new Rect()
+          const timeline = new Timeline(() => 0)
+          new Runner(100)
+            .ease('-')
+            .reverse(true)
+            .element(element)
+            .timeline(timeline)
+            .attr('x', 100)
+            .schedule(50, 'absolute')
+
+          timeline.time(25)
+          jasmine.RequestAnimationFrame.tick(1)
+
+          expect(element._transformationRunners.length()).toBe(1)
         })
 
         it('correctly animates matrices directly', () => {
@@ -2237,6 +2385,24 @@ describe('Runner.js', () => {
 
         expect(arr.runners[1]).toBe(runner3)
       })
+
+      it('discards preceding transforms when merging an absolute runner', () => {
+        const runner1 = new Runner().addTransform({ translate: [10, 20] })
+        const runner2 = new Runner().addTransform({ scale: 2 })
+        const runner3 = new Runner().addTransform({ rotate: 45 })
+        runner2._isAbsoluteTransform = true
+        const arr = new RunnerArray().add(runner1).add(runner2).add(runner3)
+        runner1.done = true
+        runner2.done = true
+        runner3.done = true
+
+        arr.merge()
+
+        expect(arr.runners).toEqual([any(FakeRunner)])
+        expect(arr.runners[0].transforms).toEqual(
+          new Matrix({ scale: 2 }).rotate(45)
+        )
+      })
     })
 
     describe('edit()', () => {
@@ -2255,26 +2421,6 @@ describe('Runner.js', () => {
       it('returns the number of runners in the array', () => {
         const arr = new RunnerArray().add(new Runner()).add(new Runner())
         expect(arr.length()).toBe(2)
-      })
-    })
-
-    describe('clearBefore', () => {
-      it('removes all runners before a certain runner', () => {
-        const runner1 = new Runner()
-        const runner2 = new Runner()
-        const runner3 = new Runner()
-        const runner4 = new Runner()
-        const runner5 = new Runner()
-        const arr = new RunnerArray()
-        arr.add(runner1).add(runner2).add(runner3).add(runner4).add(runner5)
-        arr.clearBefore(runner3.id)
-        expect(arr.length()).toBe(4)
-        expect(arr.runners).toEqual([
-          any(FakeRunner),
-          runner3,
-          runner4,
-          runner5
-        ])
       })
     })
   })

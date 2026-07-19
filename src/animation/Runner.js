@@ -52,6 +52,12 @@ export default class Runner extends EventTarget {
     // Save transforms applied to this runner
     this.transforms = new Matrix()
     this.transformId = 1
+    // Transform runners stay registered across seeks; these flags distinguish
+    // cached transform data from whether it currently contributes to the DOM.
+    this._isAbsoluteTransform = false
+    this._hasTransform = false
+    this._transformInitialised = false
+    this._transformActive = false
 
     // Looping variables
     this._haveReversed = false
@@ -109,6 +115,8 @@ export default class Runner extends EventTarget {
   */
   addTransform(transform) {
     this.transforms.lmultiplyO(transform)
+    this._transformInitialised = true
+    this._transformActive = true
     return this
   }
 
@@ -127,19 +135,6 @@ export default class Runner extends EventTarget {
   clearTransform() {
     this.transforms = new Matrix()
     return this
-  }
-
-  // TODO: Keep track of all transformations so that deletion is faster
-  clearTransformsFromQueue() {
-    if (
-      !this.done ||
-      !this._timeline ||
-      !this._timeline._runnerIds.includes(this.id)
-    ) {
-      this._queue = this._queue.filter((item) => {
-        return !item.isTransform
-      })
-    }
   }
 
   delay(delay) {
@@ -290,10 +285,37 @@ export default class Runner extends EventTarget {
     return this
   }
 
-  reset() {
-    if (this._reseted) return this
-    this.time(0)
-    this._reseted = true
+  reset(deactivateTransform = false) {
+    if (this._reseted) {
+      const transformActive =
+        !deactivateTransform && this._hasTransform && this.position() !== 0
+
+      // Reversed runners can contribute at time zero before their queue has
+      // ever run, so initialise their endpoint before reactivating them.
+      if (transformActive && !this._transformInitialised) {
+        this.step(0)
+        this._reseted = true
+        return this
+      }
+
+      if (transformActive !== this._transformActive) {
+        this._transformActive = transformActive
+        this._element && this._element._addRunner(this)
+      }
+
+      return this
+    }
+
+    if (!this._reseted) {
+      this.time(0)
+      this._reseted = true
+    }
+
+    if (deactivateTransform && this._transformActive) {
+      this._transformActive = false
+      this._element && this._element._addRunner(this)
+    }
+
     return this
   }
 
@@ -351,6 +373,9 @@ export default class Runner extends EventTarget {
 
     // Runner is running. So its not in reset state anymore
     this._reseted = false
+    const transformActive =
+      this._hasTransform && (this._time > 0 || position !== 0)
+    this._transformActive = transformActive
 
     let converged = false
     // Call initialise and the run function
@@ -360,6 +385,7 @@ export default class Runner extends EventTarget {
       // clear the transforms on this runner so they dont get added again and again
       this.transforms = new Matrix()
       converged = this._run(declarative ? dt : position)
+      this._transformActive = transformActive
 
       this.fire('step', this)
     }
@@ -491,20 +517,29 @@ export default class Runner extends EventTarget {
 Runner.id = 0
 
 export class FakeRunner {
-  constructor(transforms = new Matrix(), id = -1, done = true) {
+  constructor(
+    transforms = new Matrix(),
+    id = -1,
+    done = true,
+    isAbsoluteTransform = false
+  ) {
     this.transforms = transforms
     this.id = id
     this.done = done
+    this._isAbsoluteTransform = isAbsoluteTransform
+    this._transformActive = true
   }
-
-  clearTransformsFromQueue() {}
 }
 
 extend([Runner, FakeRunner], {
   mergeWith(runner) {
     return new FakeRunner(
-      runner.transforms.lmultiply(this.transforms),
-      runner.id
+      this._isAbsoluteTransform
+        ? this.transforms
+        : runner.transforms.lmultiply(this.transforms),
+      runner.id,
+      true,
+      runner._isAbsoluteTransform || this._isAbsoluteTransform
     )
   }
 })
@@ -513,10 +548,24 @@ extend([Runner, FakeRunner], {
 
 const lmultiply = (last, curr) => last.lmultiplyO(curr)
 const getRunnerTransform = (runner) => runner.transforms
+const isActiveTransform = (runner) => runner._transformActive
+
+function activeTransformRunners(runners) {
+  const activeRunners = runners.filter(isActiveTransform)
+  let firstRunner = 0
+
+  // An absolute transform replaces every transform before it, but keeping
+  // those runners registered allows a backward seek to expose them again.
+  for (let i = 0; i < activeRunners.length; ++i) {
+    if (activeRunners[i]._isAbsoluteTransform) firstRunner = i
+  }
+
+  return activeRunners.slice(firstRunner)
+}
 
 function mergeTransforms() {
   // Find the matrix to apply to the element and apply it
-  const runners = this._transformationRunners.runners
+  const runners = activeTransformRunners(this._transformationRunners.runners)
   const netTransform = runners
     .map(getRunnerTransform)
     .reduce(lmultiply, new Matrix())
@@ -543,15 +592,6 @@ export class RunnerArray {
     this.runners.push(runner)
     this.ids.push(id)
 
-    return this
-  }
-
-  clearBefore(id) {
-    const deleteCnt = this.ids.indexOf(id + 1) || 1
-    this.ids.splice(0, deleteCnt, 0)
-    this.runners
-      .splice(0, deleteCnt, new FakeRunner())
-      .forEach((r) => r.clearTransformsFromQueue())
     return this
   }
 
@@ -624,24 +664,16 @@ registerMethods({
       return this.animate(0, by, when)
     },
 
-    // this function searches for all runners on the element and deletes the ones
-    // which run before the current one. This is because absolute transformations
-    // overwrite anything anyway so there is no need to waste time computing
-    // other runners
-    _clearTransformRunnersBefore(currentRunner) {
-      this._transformationRunners.clearBefore(currentRunner.id)
-    },
-
     _currentTransform(current) {
-      return (
+      return activeTransformRunners(
         this._transformationRunners.runners
           // we need the equal sign here to make sure, that also transformations
           // on the same runner which execute before the current transformation are
           // taken into account
           .filter((runner) => runner.id <= current.id)
-          .map(getRunnerTransform)
-          .reduce(lmultiply, new Matrix())
       )
+        .map(getRunnerTransform)
+        .reduce(lmultiply, new Matrix())
     },
 
     _addRunner(runner) {
@@ -782,6 +814,8 @@ extend(Runner, {
   transform(transforms, relative, affine) {
     // If we have a declarative function, we should retarget it if possible
     relative = transforms.relative || relative
+    this._hasTransform = true
+    this._isAbsoluteTransform = this._isAbsoluteTransform || !relative
     if (
       this._isDeclarative &&
       !relative &&
@@ -822,11 +856,6 @@ extend(Runner, {
 
       // add the runner to the element so it can merge transformations
       element._addRunner(this)
-
-      // Deactivate all transforms that have run so far if we are absolute
-      if (!relative) {
-        element._clearTransformRunnersBefore(this)
-      }
     }
 
     function run(pos) {

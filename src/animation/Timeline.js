@@ -247,8 +247,8 @@ export default class Timeline extends EventTarget {
 
       // Dont run runner if not started yet
       // and try to reset it
-      if (dtToStart <= 0) {
-        runner.reset()
+      if (dtToStart < 0) {
+        runner.reset(true)
       }
     }
 
@@ -265,7 +265,11 @@ export default class Timeline extends EventTarget {
       const dtToStart = this._time - runnerInfo.start
 
       // Dont run runner if not started yet
-      if (dtToStart <= 0) {
+      if (dtToStart < 0) {
+        runnersLeft = true
+        continue
+      } else if (dtToStart === 0) {
+        runner.reset()
         runnersLeft = true
         continue
       } else if (dtToStart < dt) {

@@ -11,6 +11,7 @@ The document follows the conventions described in [“Keep a CHANGELOG”](http:
 ### Fixed
 
 - animate singular affine transforms without producing non-finite matrix values
+- preserve animated transforms when seeking timelines backward or forward
 
 ## [3.2.7]
 
