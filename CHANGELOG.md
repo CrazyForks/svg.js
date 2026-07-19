@@ -6,7 +6,11 @@ The document follows the conventions described in [“Keep a CHANGELOG”](http:
 
 ====
 
-## [Unreleased]
+## [3.2.7]
+
+### Changed
+
+- exclude the unpublished `polyfills.js` bundle from the downloadable release archive
 
 ### Fixed
 
@@ -1095,6 +1099,7 @@ The document follows the conventions described in [“Keep a CHANGELOG”](http:
 
 <!-- Headings above link to the releases listed here -->
 
+[3.2.7]: https://github.com/svgdotjs/svg.js/releases/tag/3.2.7
 [3.2.6]: https://github.com/svgdotjs/svg.js/releases/tag/3.2.6
 [3.2.5]: https://github.com/svgdotjs/svg.js/releases/tag/3.2.5
 [3.2.4]: https://github.com/svgdotjs/svg.js/releases/tag/3.2.4
